@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Users</title>
+  </head>
+  <body>
+    <h1>User list</h1>
+    <table style="width: 100%" border="1" cellspacing="0" cellpadding="8">
+      <tr>
+        <th>Email</th>
+        <th>First Name</th>
+        <th>Last Name</th>
+        <th>Address</th>
+        <th>Action</th>
+      </tr>
+      <% for (let i = 0; i < data.length; i++) { %>
+      <tr>
+        <td><%= data[i].email %></td>
+        <td><%= data[i].firstName %></td>
+        <td><%= data[i].lastName %></td>
+        <td><%= data[i].address %></td>
+        <td>
+          <a href="/edit-crud?id=<%= data[i].id %>">Edit</a>
+          |
+          <a href="/delete-crud?id=<%= data[i].id %>">Delete</a>
+        </td>
+      </tr>
+      <% } %>
+    </table>
+    <p><a href="/crud">Create user</a></p>
+  </body>
+</html>
