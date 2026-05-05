@@ -5,9 +5,12 @@ let router = express.Router();
 
 let initWebRoute = (app) => {
   // Định nghĩa route cho trang chủ
+  /*
   router.get("/", (req, res) => {
     return res.send("This is home page");
   });
+  */
+  router.get("/", homeController.getFindAllCRUD);
   // Định nghĩa route cho các trang khác
   router.get("/about", homeController.getAboutPage);
   router.get("/crud", homeController.getCRUD);
