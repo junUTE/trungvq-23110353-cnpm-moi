@@ -1,0 +1,154 @@
+<%- include('partials/header', { title: 'Dashboard Y Tế' }); %>
+
+    <style>
+        :root {
+            --med-blue: #0056b3;
+            --med-light: #e7f1ff;
+        }
+
+        .hero-minimal {
+            background: var(--med-light);
+            border-radius: 16px;
+            padding: 2rem;
+            border: 1px solid #dee2e6;
+        }
+
+        .stat-box {
+            background: white;
+            border: 1px solid #eee;
+            border-radius: 12px;
+            padding: 1rem;
+            transition: 0.2s;
+        }
+
+        .stat-box:hover {
+            border-color: var(--med-blue);
+        }
+
+        .btn-med {
+            background: var(--med-blue);
+            color: white;
+            border-radius: 8px;
+            padding: 0.6rem 1.5rem;
+            border: none;
+        }
+
+        .btn-med:hover {
+            background: #004494;
+            color: white;
+        }
+
+        .table-clean thead {
+            background: #f8f9fa;
+            color: #666;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+        }
+
+        .user-icon {
+            width: 32px;
+            height: 32px;
+            background: #ddd;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+        }
+    </style>
+
+    <!-- Hero Section -->
+    <section class="hero-minimal mb-4">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="h3 font-weight-bold mb-2">Hệ thống Đặt lịch Khám</h1>
+                <p class="text-muted mb-4">Giải pháp quản lý thông tin bệnh nhân và lịch hẹn bác sĩ tối ưu, bảo mật.</p>
+                <div class="d-flex gap-2">
+                    <a class="btn btn-med" href="/crud"><i class="fas fa-plus-circle mr-1"></i> Thêm bệnh nhân</a>
+                    <a class="btn btn-outline-secondary" href="/get-crud">Xem danh sách</a>
+                </div>
+            <%- include('auth/registerModal'); %>
+            </div>
+            <div class="col-md-4 d-none d-md-block text-right">
+                <div class="stat-box d-inline-block text-center">
+                    <div class="text-primary h3 mb-0">
+                        <%= users.length %>
+                    </div>
+                    <small class="text-muted">Tổng số người dùng</small>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- User Table -->
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-body p-0">
+                    <div class="p-3 d-flex justify-content-between align-items-center border-bottom">
+                        <h5 class="mb-0">Người dùng mới nhất</h5>
+                        <span class="badge badge-primary-light text-primary">Cập nhật thời gian thực</span>
+                    </div>
+
+                    <% if (users.length) { %>
+                        <div class="table-responsive">
+                            <table class="table table-clean table-hover mb-0">
+                                <thead>
+                                    <tr>
+                                        <th class="px-4">Người dùng</th>
+                                        <th>Vai trò</th>
+                                        <th>Số điện thoại</th>
+                                        <th>Ngày tạo</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <% users.slice(0, 5).forEach(function(u) { %>
+                                        <tr>
+                                            <td class="px-4 py-3">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="user-icon mr-2 text-primary"
+                                                        style="background: var(--med-light);">
+                                                        <%= (u.firstName || 'U' ).charAt(0).toUpperCase() %>
+                                                    </div>
+                                                    <div>
+                                                        <div class="font-weight-bold">
+                                                            <%= u.firstName %>
+                                                                <%= u.lastName %>
+                                                        </div>
+                                                        <small class="text-muted">
+                                                            <%= u.email %>
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span
+                                                    class="badge <%= u.role === 'admin' ? 'badge-danger' : 'badge-light border' %>">
+                                                    <%= u.role || 'user' %>
+                                                </span>
+                                            </td>
+                                            <td class="text-muted small">
+                                                <%= u.phone || '—' %>
+                                            </td>
+                                            <td class="text-muted small">
+                                                <%= new Date(u.createdAt).toLocaleDateString('vi-VN') %>
+                                            </td>
+                                        </tr>
+                                        <% }); %>
+                                </tbody>
+                            </table>
+                        </div>
+                        <% } else { %>
+                            <div class="p-5 text-center text-muted">
+                                <i class="fas fa-folder-open mb-2 fa-2x"></i>
+                                <p>Chưa có dữ liệu người dùng.</p>
+                            </div>
+                            <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <%- include('partials/footer'); %>

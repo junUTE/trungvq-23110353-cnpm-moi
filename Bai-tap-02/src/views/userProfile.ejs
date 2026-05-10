@@ -1,0 +1,44 @@
+<%- include('partials/header', { title: 'Trang cá nhân' }); %>
+
+<div data-auth-required="true" data-auth-role="user">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3 class="mb-0">Trang cá nhân</h3>
+      <div class="text-muted">Thông tin tài khoản người dùng hiện tại.</div>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body">
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <strong>Username</strong>
+          <div id="profileUsername" class="text-muted">Đang tải...</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <strong>Email</strong>
+          <div id="profileEmail" class="text-muted">Đang tải...</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <strong>Họ tên</strong>
+          <div id="profileFullName" class="text-muted">Đang tải...</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <strong>Vai trò</strong>
+          <div id="profileRole" class="text-muted">Đang tải...</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <strong>Trạng thái</strong>
+          <div id="profileStatus" class="text-muted">Đang tải...</div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <strong>Lần đăng nhập gần nhất</strong>
+          <div id="profileLastLogin" class="text-muted">Đang tải...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="/js/userProfile.js"></script>
+<%- include('partials/footer'); %>

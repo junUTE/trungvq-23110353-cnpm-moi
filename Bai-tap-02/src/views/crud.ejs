@@ -1,0 +1,102 @@
+<%- include('partials/header', { title: 'Thêm người dùng' }); %>
+
+<div data-auth-required="true" data-auth-role="admin">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+      <h3 class="mb-0">Thêm người dùng</h3>
+      <div class="text-muted">Tạo nhanh một tài khoản người dùng trong hệ thống.</div>
+    </div>
+    <div>
+      <a class="btn btn-outline-secondary" href="/get-crud">Danh sách</a>
+    </div>
+  </div>
+
+  <div class="card border-0 shadow-sm rounded-4">
+    <div class="card-body">
+      <div class="alert alert-danger d-none" id="createUserError"></div>
+      <div class="alert alert-success d-none" id="createUserSuccess"></div>
+
+      <form id="createUserForm">
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Username *</label>
+            <input class="form-control" name="username" type="text" placeholder="username" required />
+          </div>
+          <div class="form-group col-md-6">
+            <label>Email *</label>
+            <input class="form-control" name="email" type="email" placeholder="email@domain.com" required />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Mật khẩu *</label>
+            <input class="form-control" name="password" type="password" minlength="6" required />
+            <small class="text-muted">Tối thiểu 6 ký tự.</small>
+          </div>
+          <div class="form-group col-md-6">
+            <label>Vai trò</label>
+            <select class="form-control" name="role">
+              <option value="user" selected>user</option>
+              <option value="admin">admin</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label>Họ</label>
+            <input class="form-control" name="firstName" type="text" placeholder="Nguyễn" />
+          </div>
+          <div class="form-group col-md-6">
+            <label>Tên</label>
+            <input class="form-control" name="lastName" type="text" placeholder="Văn A" />
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-8">
+            <label>Địa chỉ</label>
+            <input class="form-control" name="address" type="text" placeholder="Số nhà, đường, quận/huyện..." />
+          </div>
+          <div class="form-group col-md-4">
+            <label>Giới tính</label>
+            <select class="form-control" name="gender">
+              <option value="">—</option>
+              <option value="1">Nam</option>
+              <option value="0">Nữ</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md-4">
+            <label>Số điện thoại</label>
+            <input class="form-control" name="phone" type="text" placeholder="09xxxxxxxx" />
+          </div>
+          <div class="form-group col-md-4">
+            <label>Trạng thái active</label>
+            <select class="form-control" name="isActive">
+              <option value="true" selected>Hoạt động</option>
+              <option value="false">Vô hiệu hóa</option>
+            </select>
+          </div>
+          <div class="form-group col-md-4">
+            <label>Khóa tài khoản</label>
+            <select class="form-control" name="isLocked">
+              <option value="false" selected>Không khóa</option>
+              <option value="true">Khóa</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end">
+          <button class="btn btn-primary" type="submit">Tạo người dùng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script src="/js/adminUsers.js"></script>
+<%- include('partials/footer'); %>

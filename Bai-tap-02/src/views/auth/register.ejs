@@ -1,0 +1,31 @@
+<%- include('../partials/header', { title: 'Đăng ký tài khoản' }); %>
+<div class="container mt-5" style="max-width: 500px;">
+    <h2 class="mb-4 text-center">Register</h2>
+    <form action="/register" method="POST">
+        <div class="mb-3">
+            <label for="username" class="form-label">Username</label>
+            <input type="text" class="form-control" id="username" name="username" required>
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="mb-3">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+        </div>
+        <div class="mb-3" id="verificationCodeSection">
+            <label for="verificationCode" class="form-label">Verification Code</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="verificationCode" name="verificationCode" required>
+                <button type="button" class="btn btn-outline-secondary" onclick="verifyPasswords()">Get Code</button>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Register</button>
+    </form>
+</div>
+<%- include('../partials/footer'); %>
