@@ -1,52 +1,33 @@
 import { Outlet } from "react-router-dom";
-import Header from "./components/layout/header";
-import axios from "./util/axios.customize";
+import { Layout, Spin } from "antd";
 import { useContext, useEffect } from "react";
+import AppHeader from "./components/layout/header";
 import { AuthContext } from "./components/context/auth.context";
-import { Spin } from "antd";
+
+const { Content } = Layout;
 
 function App() {
-  const { setAuth, appLoading, setAppLoading } = useContext(AuthContext);
+  const { appLoading, bootstrapAuth } = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchAccount = async () => {
-      setAppLoading(true);
-      const res = await axios.get(`/v1/api/user`);
-      if (res && !res.message) {
-        setAuth({
-          isAuthenticated: true,
-          user: {
-            email: res.email,
-            name: res.name,
-          },
-        });
-      }
-      setAppLoading(false);
-    };
-
-    fetchAccount();
+    bootstrapAuth();
   }, []);
 
+  if (appLoading) {
+    return (
+      <div className="screen-loader">
+        <Spin size="large" />
+      </div>
+    );
+  }
+
   return (
-    <div>
-      {appLoading === true ? (
-        <div
-          style={{
-            position: "fixed",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-          }}
-        >
-          <Spin />
-        </div>
-      ) : (
-        <>
-          <Header />
-          <Outlet />
-        </>
-      )}
-    </div>
+    <Layout className="app-shell">
+      <AppHeader />
+      <Content className="app-content">
+        <Outlet />
+      </Content>
+    </Layout>
   );
 }
 

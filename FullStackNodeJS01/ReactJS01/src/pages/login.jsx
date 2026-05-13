@@ -1,102 +1,95 @@
-import React, { useContext } from "react";
-import { Button, Col, Divider, Form, Input, notification, Row } from "antd";
-import { loginApi } from "../util/api";
+import { useContext, useState } from "react";
+import { Button, Card, Form, Input, Typography, notification } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../components/context/auth.context";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { loginApi } from "../util/api";
+
+const { Title, Paragraph } = Typography;
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const { setAuth } = useContext(AuthContext);
+  const [submitting, setSubmitting] = useState(false);
 
   const onFinish = async (values) => {
-    const { email, password } = values;
+    setSubmitting(true);
+    const response = await loginApi(values.email, values.password);
 
-    const res = await loginApi(email, password);
-
-    if (res && res.EC === 0) {
-      localStorage.setItem("access_token", res.access_token);
-      notification.success({
-        message: "LOGIN USER",
-        description: "Success",
-      });
+    if (response?.EC === 0) {
+      localStorage.setItem("access_token", response.access_token);
       setAuth({
         isAuthenticated: true,
         user: {
-          email: res?.user?.email ?? "",
-          name: res?.user?.name ?? "",
+          id: response?.user?.id ?? "",
+          email: response?.user?.email ?? "",
+          name: response?.user?.name ?? "",
         },
+      });
+      notification.success({
+        message: "Dang nhap thanh cong",
+        description: "Ban da ket noi vao he thong.",
       });
       navigate("/");
     } else {
       notification.error({
-        message: "LOGIN USER",
-        description: res?.EM ?? "error",
+        message: "Dang nhap that bai",
+        description: response?.EM || response?.message || "Khong the dang nhap.",
       });
     }
+
+    setSubmitting(false);
   };
 
   return (
-    <Row justify={"center"} style={{ marginTop: "30px" }}>
-      <Col xs={24} md={16} lg={8}>
-        <fieldset
-          style={{
-            padding: "15px",
-            margin: "5px",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-          }}
-        >
-          <legend>Đăng Nhập</legend>
-          <Form
-            name="basic"
-            onFinish={onFinish}
-            autoComplete="off"
-            layout="vertical"
+    <section className="auth-shell">
+      <Card className="auth-card" bordered={false}>
+        <div className="auth-copy">
+          <span className="eyebrow">Welcome back</span>
+          <Title level={2}>Dang nhap de mo dashboard</Title>
+          <Paragraph>
+            Sau khi dang nhap, frontend se tu dong luu token va goi `/account`,
+            `/home`, `/user` bang Authorization header.
+          </Paragraph>
+        </div>
+
+        <Form layout="vertical" onFinish={onFinish} autoComplete="off">
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: "Vui long nhap email." },
+              { type: "email", message: "Email khong hop le." },
+            ]}
           >
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your email!",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
+            <Input size="large" placeholder="you@example.com" />
+          </Form.Item>
 
-            <Form.Item
-              label="Password"
-              name="password"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your password!",
-                },
-              ]}
-            >
-              <Input.Password />
-            </Form.Item>
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[{ required: true, message: "Vui long nhap password." }]}
+          >
+            <Input.Password size="large" placeholder="Nhap mat khau" />
+          </Form.Item>
 
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Login
-              </Button>
-            </Form.Item>
-          </Form>
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            block
+            loading={submitting}
+            className="hero-button"
+          >
+            Dang nhap
+          </Button>
+        </Form>
 
-          <Link to={"/"}>
-            <ArrowLeftOutlined /> Quay lại trang chủ
-          </Link>
-          <Divider />
-          <div style={{ textAlign: "center" }}>
-            Chưa có tài khoản? <Link to={"/register"}>Đăng ký tại đây</Link>
-          </div>
-        </fieldset>
-      </Col>
-    </Row>
+        <div className="auth-footer">
+          <Link to="/">Ve trang chu</Link>
+          <Link to="/register">Chua co tai khoan?</Link>
+        </div>
+      </Card>
+    </section>
   );
 };
 

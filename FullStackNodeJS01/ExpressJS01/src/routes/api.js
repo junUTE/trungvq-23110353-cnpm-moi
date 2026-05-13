@@ -6,6 +6,7 @@ const {
   getAccount,
 } = require("../controllers/userController");
 const auth = require("../middleware/auth");
+const homeController = require('../controllers/homeController')
 
 const router = express.Router();
 
@@ -18,5 +19,6 @@ router.post("/register", createUser);
 router.post("/login", handleLogin);
 router.get("/user", getUser);
 router.get("/account", getAccount);
+router.get("/home", homeController.getHomepage);
 
 module.exports = router;

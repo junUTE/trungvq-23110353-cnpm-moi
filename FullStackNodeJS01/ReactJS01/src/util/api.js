@@ -1,29 +1,28 @@
 import axios from "./axios.customize";
 
-const createUserApi = (name, email, password) => {
-  const URL_API = "/v1/api/register";
-  const data = {
+export const createUserApi = (name, email, password) => {
+  return axios.post("/v1/api/register", {
     name,
     email,
     password,
-  };
-
-  return axios.post(URL_API, data);
+  });
 };
 
-const loginApi = (email, password) => {
-  const URL_API = "/v1/api/login";
-  const data = {
+export const loginApi = (email, password) => {
+  return axios.post("/v1/api/login", {
     email,
     password,
-  };
-
-  return axios.post(URL_API, data);
+  });
 };
 
-const getUserApi = () => {
-  const URL_API = "/v1/api/user";
-  return axios.get(URL_API);
+export const getUsersApi = () => {
+  return axios.get("/v1/api/user");
 };
 
-export { createUserApi, loginApi, getUserApi };
+export const getAccountApi = () => {
+  return axios.get("/v1/api/account");
+};
+
+export const getHomepageApi = () => {
+  return axios.get("/v1/api/home");
+};

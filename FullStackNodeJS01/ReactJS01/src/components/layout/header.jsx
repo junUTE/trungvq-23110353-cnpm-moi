@@ -1,89 +1,69 @@
-import React, { useContext, useState } from "react";
-import {
-  UsergroupAddOutlined,
-  HomeOutlined,
-  SettingOutlined,
-} from "@ant-design/icons";
-import { Menu } from "antd";
-import { Link, useNavigate } from "react-router-dom";
+import { Button, Layout, Space, Tag } from "antd";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useContext } from "react";
 import { AuthContext } from "../context/auth.context";
 
-const Header = () => {
+const { Header } = Layout;
+
+const AppHeader = () => {
+  const location = useLocation();
   const navigate = useNavigate();
-  const { auth, setAuth } = useContext(AuthContext);
-  console.log(">>> check auth: ", auth);
+  const { auth, logout } = useContext(AuthContext);
 
-  const items = [
-    {
-      label: <Link to={"/"}>Home Page</Link>,
-      key: "home",
-      icon: <HomeOutlined />,
-    },
-
-    ...(auth.isAuthenticated
-      ? [
-          {
-            label: <Link to={"/user"}>Users</Link>,
-            key: "user",
-            icon: <UsergroupAddOutlined />,
-          },
-        ]
-      : []),
-
-    {
-      label: `Welcome ${auth?.user?.email ?? ""}`,
-      key: "SubMenu",
-      icon: <SettingOutlined />,
-      children: [
-        ...(auth.isAuthenticated
-          ? [
-              {
-                label: (
-                  <span
-                    onClick={() => {
-                      localStorage.clear("access_token");
-                      setCurrent("home");
-                      setAuth({
-                        isAuthenticated: false,
-                        user: {
-                          email: "",
-                          name: "",
-                        },
-                      });
-                      navigate("/");
-                    }}
-                  >
-                    Đăng xuất
-                  </span>
-                ),
-                key: "logout",
-              },
-            ]
-          : [
-              {
-                label: <Link to={"/login"}>Đăng nhập</Link>,
-                key: "login",
-              },
-            ]),
-      ],
-    },
-  ];
-
-  const [current, setCurrent] = useState("mail");
-
-  const onClick = (e) => {
-    console.log("click ", e);
-    setCurrent(e.key);
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   return (
-    <Menu
-      onClick={onClick}
-      selectedKeys={[current]}
-      mode="horizontal"
-      items={items}
-    />
+    <Header className="app-header">
+      <div className="brand-block">
+        <Link to="/" className="brand-mark">
+          ShopFlow
+        </Link>
+        <p className="brand-copy">React frontend for your Node + Mongo API</p>
+      </div>
+
+      <nav className="nav-links">
+        <Link
+          className={location.pathname === "/" ? "nav-link active" : "nav-link"}
+          to="/"
+        >
+          Trang chủ
+        </Link>
+        <Link
+          className={
+            location.pathname === "/users" ? "nav-link active" : "nav-link"
+          }
+          to="/users"
+        >
+          Người dùng
+        </Link>
+      </nav>
+
+      <Space size="middle" className="header-actions">
+        {auth.isAuthenticated ? (
+          <>
+            <Tag color="gold" className="welcome-tag">
+              {auth.user.name || auth.user.email}
+            </Tag>
+            <Button type="primary" className="header-button" onClick={handleLogout}>
+              Đăng xuất
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button className="header-button ghost-button" onClick={() => navigate("/register")}>
+              Đăng ký
+            </Button>
+            <Button type="primary" className="header-button" onClick={() => navigate("/login")}>
+              Đăng nhập
+            </Button>
+          </>
+        )}
+      </Space>
+    </Header>
   );
 };
 
-export default Header;
+export default AppHeader;

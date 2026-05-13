@@ -1,14 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./App.jsx";
-import "./styles/global.css";
-
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import RegisterPage from "./pages/register.jsx";
-import UserPage from "./pages/user.jsx";
-import HomePage from "./pages/home.jsx";
-import LoginPage from "./pages/login.jsx";
-import { AuthWrapper } from "./components/context/auth.context.jsx";
+import { ConfigProvider } from "antd";
+import App from "./App";
+import { AuthWrapper } from "./components/context/auth.context";
+import HomePage from "./pages/home";
+import LoginPage from "./pages/login";
+import RegisterPage from "./pages/register";
+import UserPage from "./pages/user";
+import "./styles/global.css";
 
 const router = createBrowserRouter([
   {
@@ -20,25 +20,36 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "user",
+        path: "users",
         element: <UserPage />,
       },
     ],
   },
   {
-    path: "register",
-    element: <RegisterPage />,
+    path: "/login",
+    element: <LoginPage />,
   },
   {
-    path: "login",
-    element: <LoginPage />,
+    path: "/register",
+    element: <RegisterPage />,
   },
 ]);
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <AuthWrapper>
-      <RouterProvider router={router} />
-    </AuthWrapper>
+    <ConfigProvider
+      theme={{
+        token: {
+          colorPrimary: "#bb4d00",
+          borderRadius: 18,
+          fontFamily:
+            '"Segoe UI", "Trebuchet MS", "Helvetica Neue", sans-serif',
+        },
+      }}
+    >
+      <AuthWrapper>
+        <RouterProvider router={router} />
+      </AuthWrapper>
+    </ConfigProvider>
   </React.StrictMode>,
 );

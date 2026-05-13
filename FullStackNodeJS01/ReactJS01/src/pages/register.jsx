@@ -1,104 +1,96 @@
-import React from "react";
-import { Button, Col, Divider, Form, Input, notification, Row } from "antd";
-import { createUserApi } from "../util/api";
+import { useState } from "react";
+import { Button, Card, Form, Input, Typography, notification } from "antd";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeftOutlined } from "@ant-design/icons";
+import { createUserApi } from "../util/api";
+
+const { Title, Paragraph } = Typography;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const [submitting, setSubmitting] = useState(false);
 
   const onFinish = async (values) => {
-    const { name, email, password } = values;
+    setSubmitting(true);
+    const response = await createUserApi(values.name, values.email, values.password);
 
-    const res = await createUserApi(name, email, password);
-
-    if (res) {
+    if (response?._id || response?.email) {
       notification.success({
-        message: "CREATE USER",
-        description: "Success",
+        message: "Tao tai khoan thanh cong",
+        description: "Ban co the dang nhap ngay bay gio.",
       });
       navigate("/login");
     } else {
       notification.error({
-        message: "CREATE USER",
-        description: "error",
+        message: "Tao tai khoan that bai",
+        description:
+          response?.message || "Email co the da ton tai hoac du lieu chua hop le.",
       });
     }
+
+    setSubmitting(false);
   };
+
   return (
-    <Row justify={"center"} style={{ marginTop: "30px" }}>
-      <Col xs={24} md={16} lg={8}>
-        <fieldset
-          style={{
-            padding: "15px",
-            margin: "5px",
-            border: "1px solid #ccc",
-            borderRadius: "5px",
-          }}
-        >
-          <legend>Đăng Ký Tài Khoản</legend>
-          <Form
-            name="basic"
-            onFinish={onFinish}
-            autoComplete="off"
-            layout="vertical"
+    <section className="auth-shell">
+      <Card className="auth-card" bordered={false}>
+        <div className="auth-copy">
+          <span className="eyebrow">Create account</span>
+          <Title level={2}>Dang ky tai khoan moi</Title>
+          <Paragraph>
+            Form nay ket noi truc tiep toi `/v1/api/register` tren backend
+            ExpressJS01 cua ban.
+          </Paragraph>
+        </div>
+
+        <Form layout="vertical" onFinish={onFinish} autoComplete="off">
+          <Form.Item
+            label="Ho ten"
+            name="name"
+            rules={[{ required: true, message: "Vui long nhap ho ten." }]}
           >
-            <Form.Item
-              label="Email"
-              name="email"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your email!",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
+            <Input size="large" placeholder="Nguyen Van A" />
+          </Form.Item>
 
-            <Form.Item
-              label="Password"
-              name="password"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your password!",
-                },
-              ]}
-            >
-              <Input.Password />
-            </Form.Item>
+          <Form.Item
+            label="Email"
+            name="email"
+            rules={[
+              { required: true, message: "Vui long nhap email." },
+              { type: "email", message: "Email khong hop le." },
+            ]}
+          >
+            <Input size="large" placeholder="you@example.com" />
+          </Form.Item>
 
-            <Form.Item
-              label="Name"
-              name="name"
-              rules={[
-                {
-                  required: true,
-                  message: "Please input your name!",
-                },
-              ]}
-            >
-              <Input />
-            </Form.Item>
+          <Form.Item
+            label="Password"
+            name="password"
+            rules={[
+              { required: true, message: "Vui long nhap password." },
+              { min: 6, message: "Password can it nhat 6 ky tu." },
+            ]}
+          >
+            <Input.Password size="large" placeholder="Tao mat khau" />
+          </Form.Item>
 
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                Submit
-              </Button>
-            </Form.Item>
-          </Form>
+          <Button
+            type="primary"
+            htmlType="submit"
+            size="large"
+            block
+            loading={submitting}
+            className="hero-button"
+          >
+            Tao tai khoan
+          </Button>
+        </Form>
 
-          <Link to={"/"}>
-            <ArrowLeftOutlined /> Quay lại trang chủ
-          </Link>
-          <Divider />
-          <div style={{ textAlign: "center" }}>
-            Đã có tài khoản? <Link to={"/login"}>Đăng nhập</Link>
-          </div>
-        </fieldset>
-      </Col>
-    </Row>
+        <div className="auth-footer">
+          <Link to="/">Ve trang chu</Link>
+          <Link to="/login">Da co tai khoan?</Link>
+        </div>
+      </Card>
+    </section>
   );
 };
 

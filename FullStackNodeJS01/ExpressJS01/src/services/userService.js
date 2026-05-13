@@ -38,6 +38,7 @@ const loginService = async (email, password) => {
                 }
             } else {
                 const payload = {
+                    id: user._id,
                     email: user.email,
                     name: user.name
                 }
@@ -52,6 +53,7 @@ const loginService = async (email, password) => {
                     EC: 0,
                     access_token: accessToken,
                     user: {
+                        id: user._id,
                         email: user.email,
                         name: user.name
                     }
@@ -79,8 +81,21 @@ const getUserService = async (email) => {
     }
 }
 
+const getUserById = async (id) => {
+    try {
+        const user = await User.findById(id).select("-password");
+        if (!user) {
+            throw new Error("User not found");
+        }
+        return user;
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createUserService,
     loginService,
-    getUserService
+    getUserService,
+    getUserById
 }

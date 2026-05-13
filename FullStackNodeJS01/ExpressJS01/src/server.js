@@ -5,7 +5,7 @@ const configViewEngine = require('./config/viewEngine');
 const connection = require('./config/database');
 const cors = require('cors');
 const apiRouter = require('./routes/api');
-const { getHomePage } = require('./controllers/homeController');
+const { getHomepage } = require('./controllers/homeController');
 const app = express();
 
 const port = process.env.PORT || 8888;
@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 configViewEngine(app);
 
 const webAPI = express.Router();
-webAPI.get('/', getHomePage);
+webAPI.get('/', getHomepage);
 app.use('/', webAPI);
 app.use('/v1/api', apiRouter);
 
