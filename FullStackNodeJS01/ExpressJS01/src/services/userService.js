@@ -40,7 +40,8 @@ const loginService = async (email, password) => {
                 const payload = {
                     id: user._id,
                     email: user.email,
-                    name: user.name
+                    name: user.name,
+                    role: user.role
                 }
                 const accessToken = jwt.sign(
                     payload,
@@ -55,7 +56,8 @@ const loginService = async (email, password) => {
                     user: {
                         id: user._id,
                         email: user.email,
-                        name: user.name
+                        name: user.name,
+                        role: user.role
                     }
                 };
             }
@@ -93,9 +95,97 @@ const getUserById = async (id) => {
     }
 }
 
+const updateUserService = async (id, data) => {
+    try {
+        const { name, email, role } = data;
+        const user = await User.findById(id);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (email && email !== user.email) {
+            const existingUser = await User.findOne({ email, _id: { $ne: id } });
+            if (existingUser) {
+                throw new Error("Email already exists");
+            }
+        }
+
+        if (name !== undefined) user.name = name;
+        if (email !== undefined) user.email = email;
+        if (role !== undefined) user.role = role;
+
+        await user.save();
+        return await User.findById(id).select("-password");
+    } catch (error) {
+        throw error;
+    }
+}
+
+const deleteUserService = async (id) => {
+    try {
+        const user = await User.findById(id);
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        await User.findByIdAndDelete(id);
+        return { message: "User deleted successfully" };
+    } catch (error) {
+        throw error;
+    }
+}
+
+const updateProfileService = async (id, data) => {
+    try {
+        const { name, email, password } = data;
+        const user = await User.findById(id);
+
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        if (email && email !== user.email) {
+            const existingUser = await User.findOne({ email, _id: { $ne: id } });
+            if (existingUser) {
+                throw new Error("Email already exists");
+            }
+        }
+
+        if (name !== undefined) user.name = name;
+        if (email !== undefined) user.email = email;
+        if (password) {
+            user.password = await brypt.hash(password, saltRounds);
+        }
+
+        await user.save();
+        return await User.findById(id).select("-password");
+    } catch (error) {
+        throw error;
+    }
+}
+
+const deleteOwnAccountService = async (id) => {
+    try {
+        const user = await User.findById(id);
+        if (!user) {
+            throw new Error("User not found");
+        }
+
+        await User.findByIdAndDelete(id);
+        return { message: "Account deleted successfully" };
+    } catch (error) {
+        throw error;
+    }
+}
+
 module.exports = {
     createUserService,
     loginService,
     getUserService,
-    getUserById
+    getUserById,
+    updateUserService,
+    deleteUserService,
+    updateProfileService,
+    deleteOwnAccountService
 }

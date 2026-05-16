@@ -3,7 +3,11 @@ const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
     const white_lists = ["/","/register","/login"];
-    if (white_lists.find(item => '/v1/api' + item === req.originalUrl)){
+    
+    const isWhiteListed = white_lists.find(item => '/v1/api' + item === req.originalUrl);
+    const isProductDetail = req.originalUrl.startsWith('/v1/api/product-detail');
+
+    if (isWhiteListed || isProductDetail){
         next();
     } else {
         if (req?.headers?.authorization?.split(' ')?.[1]){
@@ -16,6 +20,7 @@ const auth = (req, res, next) => {
                     id: decoded.id,
                     email: decoded.email,
                     name: decoded.name,
+                    role: decoded.role,
                     createdBy: "hoidanIT"
                 }
                 console.log(">>> check token: ", decoded)

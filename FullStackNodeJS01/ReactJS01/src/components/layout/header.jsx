@@ -21,7 +21,6 @@ const AppHeader = () => {
         <Link to="/" className="brand-mark">
           ShopFlow
         </Link>
-        <p className="brand-copy">React frontend for your Node + Mongo API</p>
       </div>
 
       <nav className="nav-links">
@@ -31,14 +30,26 @@ const AppHeader = () => {
         >
           Trang chủ
         </Link>
-        <Link
-          className={
-            location.pathname === "/users" ? "nav-link active" : "nav-link"
-          }
-          to="/users"
-        >
-          Người dùng
-        </Link>
+        {auth.isAuthenticated ? (
+          <Link
+            className={
+              location.pathname === "/profile" ? "nav-link active" : "nav-link"
+            }
+            to="/profile"
+          >
+            Cá nhân
+          </Link>
+        ) : null}
+        {auth.user.role === "admin" ? (
+          <Link
+            className={
+              location.pathname === "/admin" ? "nav-link active" : "nav-link"
+            }
+            to="/admin"
+          >
+            Quản trị
+          </Link>
+        ) : null}
       </nav>
 
       <Space size="middle" className="header-actions">
@@ -46,6 +57,7 @@ const AppHeader = () => {
           <>
             <Tag color="gold" className="welcome-tag">
               {auth.user.name || auth.user.email}
+              {auth.user.role ? ` • ${auth.user.role}` : ""}
             </Tag>
             <Button type="primary" className="header-button" onClick={handleLogout}>
               Đăng xuất

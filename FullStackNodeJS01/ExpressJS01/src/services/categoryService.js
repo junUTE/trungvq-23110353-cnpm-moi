@@ -1,4 +1,5 @@
 const Category = require("../models/category");
+const Product = require("../models/product");
 
 // CREATE
 const createCategory = async (data) => {
@@ -50,8 +51,8 @@ const updateCategory = async (id, data) => {
   }
 
   // update từng field nếu có
-  if (name) category.name = name;
-  if (description) category.description = description;
+  if (name !== undefined) category.name = name;
+  if (description !== undefined) category.description = description;
 
   return await category.save();
 };
@@ -62,6 +63,11 @@ const deleteCategory = async (id) => {
 
   if (!category) {
     throw new Error("Category not found");
+  }
+
+  const linkedProducts = await Product.countDocuments({ categoryId: id });
+  if (linkedProducts > 0) {
+    throw new Error("Khong the xoa category dang duoc san pham su dung");
   }
 
   await Category.findByIdAndDelete(id);

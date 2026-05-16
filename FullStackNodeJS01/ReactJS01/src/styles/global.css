@@ -45,22 +45,23 @@ a {
   justify-content: space-between;
   gap: 20px;
   height: auto;
-  padding: 18px 28px;
-  background: rgba(76, 47, 29, 0.84);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 18px 40px rgba(63, 36, 15, 0.16);
+  padding: 8px 36px;
+  background: rgba(76, 47, 29, 0.88);
+  backdrop-filter: blur(24px);
+  box-shadow: 0 12px 40px rgba(63, 36, 15, 0.25);
 }
 
 .brand-block {
   display: flex;
   flex-direction: column;
+  margin-left: 20px;
 }
 
 .brand-mark {
   color: #fff8ed;
-  font-size: 1.65rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
   text-transform: uppercase;
 }
 
@@ -78,16 +79,18 @@ a {
 }
 
 .nav-link {
-  padding: 10px 14px;
+  padding: 8px 18px;
   border-radius: 999px;
   color: #f6e7d0;
-  transition: 0.2s ease;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-link:hover,
 .nav-link.active {
   color: #3d2416;
   background: #ffd8aa;
+  box-shadow: 0 4px 12px rgba(255, 216, 170, 0.2);
 }
 
 .header-actions {
@@ -103,15 +106,21 @@ a {
 }
 
 .header-button {
-  height: 42px;
+  height: 38px;
   padding-inline: 20px;
   font-weight: 700;
 }
 
 .ghost-button {
-  border-color: #cb8d50;
-  background: #fff5e7;
-  color: #8d4300;
+  border-color: rgba(255, 248, 237, 0.3);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff8ed;
+}
+
+.ghost-button:hover {
+  background: #fff5e7 !important;
+  color: #8d4300 !important;
+  border-color: #fff5e7 !important;
 }
 
 .app-content {
@@ -280,9 +289,35 @@ a {
   font-size: 1rem;
 }
 
+.product-link {
+  color: inherit;
+}
+
+.product-link:hover {
+  color: #8d4300;
+}
+
 .product-meta p {
   margin: 8px 0 10px;
   color: #6f5846;
+}
+
+.promotion-prices {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0 10px;
+}
+
+.price-original {
+  color: #9b7f68;
+  text-decoration: line-through;
+  font-size: 0.9rem;
+}
+
+.price-discounted {
+  color: #ba2d0b;
+  font-weight: 800;
 }
 
 .product-headline,
@@ -328,13 +363,136 @@ a {
 }
 
 .panel-card {
-  width: min(1100px, 100%);
+  width: 100%;
+  max-width: 1100px;
   background: rgba(255, 251, 245, 0.9);
+}
+
+.profile-card {
+  width: min(760px, 100%);
+}
+
+.admin-card {
+  width: 100%;
 }
 
 .panel-heading {
   align-items: start;
   margin-bottom: 16px;
+}
+
+.admin-product-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+}
+
+.admin-thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.muted-copy {
+  margin-top: 4px;
+  color: #7a634f;
+  font-size: 0.88rem;
+}
+
+.upload-trigger {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: #8d4300;
+  cursor: pointer;
+}
+
+.existing-media {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.existing-media-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 2px solid rgba(141, 67, 0, 0.15);
+}
+
+.detail-card {
+  width: 100%;
+  max-width: 1100px;
+}
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.detail-gallery {
+  padding: 8px 0;
+  min-width: 0;
+}
+
+.detail-summary {
+  padding: 24px 32px;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 16px 40px rgba(100, 50, 0, 0.05);
+}
+
+.detail-image {
+  width: 100%;
+  height: 480px;
+  object-fit: cover;
+  border-radius: 28px;
+  background: #fff4e9;
+  box-shadow: 0 12px 36px rgba(100, 50, 0, 0.08);
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.detail-image:hover {
+  transform: scale(1.02);
+}
+
+.detail-price-row {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.detail-price-tag {
+  padding: 10px 20px;
+  font-size: 1.8rem;
+  font-weight: 800;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #ff6b35, #ba2d0b);
+  color: white !important;
+  border: none;
+  box-shadow: 0 8px 20px rgba(186, 45, 11, 0.25);
+}
+
+.detail-description {
+  color: #5c4535;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 28px;
 }
 
 @media (max-width: 900px) {
@@ -350,6 +508,10 @@ a {
   .dashboard-intro {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .detail-layout {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -376,4 +538,226 @@ a {
     width: 100%;
     height: 180px;
   }
+}
+
+/* --- E-commerce Redesign --- */
+.ecommerce-section {
+  margin-bottom: 48px;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.section-header h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  color: #3d2416;
+  font-weight: 800;
+}
+
+.view-all-link {
+  color: #bb4d00;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.view-all-link:hover {
+  text-decoration: underline;
+}
+
+.ecommerce-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+}
+
+.ecommerce-card-link {
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.ecommerce-card-link:hover {
+  transform: translateY(-8px);
+}
+
+.ecommerce-card {
+  height: 100%;
+  border-radius: 20px !important;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(100, 50, 0, 0.05);
+}
+
+.ecommerce-image-wrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.ecommerce-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.ecommerce-card-link:hover .ecommerce-image {
+  transform: scale(1.05);
+}
+
+.ecommerce-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #ba2d0b;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 12px rgba(186, 45, 11, 0.3);
+}
+
+.ecommerce-meta {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ecommerce-title {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #3d2416;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ecommerce-category {
+  margin: 0;
+  color: #946c4a;
+  font-size: 0.9rem;
+}
+
+.ecommerce-price-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.ecommerce-price {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ba2d0b;
+}
+
+.ecommerce-price.original {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #9b7f68;
+  text-decoration: line-through;
+}
+
+.ecommerce-footer {
+  margin-top: 12px;
+  display: flex;
+  justify-content: space-between;
+  color: #9b7f68;
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(100, 50, 0, 0.08);
+  padding-top: 12px;
+}
+
+.ecommerce-hero {
+  position: relative;
+  width: 100%;
+  border-radius: 32px;
+  overflow: hidden;
+  margin-bottom: 48px;
+  box-shadow: 0 20px 50px rgba(100, 50, 0, 0.15);
+}
+
+.ecommerce-hero-content {
+  position: relative;
+  z-index: 2;
+  padding: 80px 60px;
+  background: linear-gradient(135deg, rgba(83, 45, 16, 0.85), rgba(187, 77, 0, 0.85));
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.ecommerce-hero-content h1 {
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 0;
+  line-height: 1.2;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.ecommerce-hero-content p {
+  font-size: 1.2rem;
+  margin: 0;
+  max-width: 600px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+@media (max-width: 768px) {
+  .ecommerce-hero-content {
+    padding: 40px 24px;
+  }
+  .ecommerce-hero-content h1 {
+    font-size: 2rem;
+  }
+  .ecommerce-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+}
+
+/* --- Carousel Arrows --- */
+.ant-carousel .slick-prev,
+.ant-carousel .slick-next {
+  width: 40px !important;
+  height: 40px !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+  border-radius: 50%;
+  z-index: 10;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.ant-carousel .slick-prev:hover,
+.ant-carousel .slick-next:hover {
+  background: rgba(187, 77, 0, 0.8) !important;
+}
+
+.ant-carousel .slick-prev {
+  left: 16px !important;
+}
+
+.ant-carousel .slick-next {
+  right: 16px !important;
+}
+
+.ant-carousel .slick-prev::before,
+.ant-carousel .slick-next::before {
+  display: none !important;
 }

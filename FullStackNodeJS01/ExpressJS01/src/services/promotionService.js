@@ -2,8 +2,55 @@ const Promotion = require("../models/promotion");
 const ProductPromotion = require("../models/productPromotion");
 const Product = require("../models/product");
 
+const normalizeProductIds = (productIds) => {
+  if (!productIds) return [];
+  if (Array.isArray(productIds)) return productIds.filter(Boolean);
+  return [productIds].filter(Boolean);
+};
+
+const attachProducts = async (promotion) => {
+  const relations = await ProductPromotion.find({ promotionId: promotion._id }).populate(
+    "productId",
+  );
+
+  return {
+    ...promotion.toObject(),
+    productIds: relations.map((relation) => relation.productId?._id).filter(Boolean),
+    products: relations
+      .map((relation) => relation.productId)
+      .filter(Boolean)
+      .map((product) => ({
+        _id: product._id,
+        name: product.name,
+        sku: product.sku,
+      })),
+  };
+};
+
+const syncPromotionProducts = async (promotionId, productIds) => {
+  const normalizedIds = normalizeProductIds(productIds);
+
+  await ProductPromotion.deleteMany({ promotionId });
+
+  if (normalizedIds.length === 0) {
+    return;
+  }
+
+  const products = await Product.find({ _id: { $in: normalizedIds } }).select("_id");
+  const validIds = products.map((product) => String(product._id));
+
+  await Promise.all(
+    validIds.map((productId) =>
+      ProductPromotion.create({
+        promotionId,
+        productId,
+      }),
+    ),
+  );
+};
+
 const createPromotion = async (data) => {
-  const { title, discountPercent, startDate, endDate } = data;
+  const { title, discountPercent, startDate, endDate, productIds } = data;
 
   if (!title || discountPercent === undefined || discountPercent === null) {
     throw new Error("Title and discount are required");
@@ -16,11 +63,14 @@ const createPromotion = async (data) => {
     endDate,
   });
 
-  return await promotion.save();
+  const savedPromotion = await promotion.save();
+  await syncPromotionProducts(savedPromotion._id, productIds);
+  return await getPromotionById(savedPromotion._id);
 };
 
 const getAllPromotions = async () => {
-  return await Promotion.find().sort({ createdAt: -1 });
+  const promotions = await Promotion.find().sort({ createdAt: -1 });
+  return await Promise.all(promotions.map((promotion) => attachProducts(promotion)));
 };
 
 const getPromotionById = async (id) => {
@@ -30,7 +80,7 @@ const getPromotionById = async (id) => {
     throw new Error("Promotion not found");
   }
 
-  return promotion;
+  return await attachProducts(promotion);
 };
 
 const updatePromotion = async (id, data) => {
@@ -40,14 +90,18 @@ const updatePromotion = async (id, data) => {
     throw new Error("Promotion not found");
   }
 
-  const { title, discountPercent, startDate, endDate } = data;
+  const { title, discountPercent, startDate, endDate, productIds } = data;
 
-  if (title) promotion.title = title;
+  if (title !== undefined) promotion.title = title;
   if (discountPercent !== undefined && discountPercent !== null) promotion.discountPercent = discountPercent;
-  if (startDate) promotion.startDate = startDate;
-  if (endDate) promotion.endDate = endDate;
+  if (startDate !== undefined) promotion.startDate = startDate;
+  if (endDate !== undefined) promotion.endDate = endDate;
 
-  return await promotion.save();
+  const savedPromotion = await promotion.save();
+  if (productIds !== undefined) {
+    await syncPromotionProducts(savedPromotion._id, productIds);
+  }
+  return await getPromotionById(savedPromotion._id);
 };
 
 const deletePromotion = async (id) => {
@@ -107,10 +161,25 @@ const getPromotionProducts = async () => {
     promotionId: { $in: promotionIds },
   }).populate("productId");
 
-  return relations.map((r) => ({
-    ...r.productId.toObject(),
-    promotionId: r.promotionId,
-  }));
+  const promotionMap = new Map(
+    promotions.map((promotion) => [String(promotion._id), promotion]),
+  );
+
+  return relations
+    .filter((relation) => relation.productId)
+    .map((relation) => ({
+      ...relation.productId.toObject(),
+      promotionId: relation.promotionId,
+      promotionTitle: promotionMap.get(String(relation.promotionId))?.title || "",
+      discountPercent:
+        promotionMap.get(String(relation.promotionId))?.discountPercent ?? 0,
+      discountedPrice: Math.round(
+        Number(relation.productId.price || 0) *
+          (1 -
+            (promotionMap.get(String(relation.promotionId))?.discountPercent ?? 0) /
+              100),
+      ),
+    }));
 };
 
 const getProductsByPromotion = async (promotionId) => {

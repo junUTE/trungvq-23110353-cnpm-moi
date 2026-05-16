@@ -7,9 +7,11 @@ const attachImages = async (products) => {
   return await Promise.all(
     products.map(async (product) => {
       const images = await imageService.getImagesByProduct(product._id);
+      const plainProduct =
+        typeof product?.toObject === "function" ? product.toObject() : product;
 
       return {
-        ...product.toObject(),
+        ...plainProduct,
         images,
       };
     }),

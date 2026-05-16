@@ -23,13 +23,14 @@ const LoginPage = () => {
           id: response?.user?.id ?? "",
           email: response?.user?.email ?? "",
           name: response?.user?.name ?? "",
+          role: response?.user?.role ?? "",
         },
       });
       notification.success({
         message: "Dang nhap thanh cong",
         description: "Ban da ket noi vao he thong.",
       });
-      navigate("/");
+      navigate(response?.user?.role === "admin" ? "/admin" : "/");
     } else {
       notification.error({
         message: "Dang nhap that bai",
@@ -42,14 +43,10 @@ const LoginPage = () => {
 
   return (
     <section className="auth-shell">
-      <Card className="auth-card" bordered={false}>
+      <Card className="auth-card" variant="borderless">
         <div className="auth-copy">
           <span className="eyebrow">Welcome back</span>
-          <Title level={2}>Dang nhap de mo dashboard</Title>
-          <Paragraph>
-            Sau khi dang nhap, frontend se tu dong luu token va goi `/account`,
-            `/home`, `/user` bang Authorization header.
-          </Paragraph>
+          <Title level={2}>Đăng nhập</Title>
         </div>
 
         <Form layout="vertical" onFinish={onFinish} autoComplete="off">
@@ -57,8 +54,8 @@ const LoginPage = () => {
             label="Email"
             name="email"
             rules={[
-              { required: true, message: "Vui long nhap email." },
-              { type: "email", message: "Email khong hop le." },
+              { required: true, message: "Vui lòng nhập email." },
+              { type: "email", message: "Email không hợp lệ." },
             ]}
           >
             <Input size="large" placeholder="you@example.com" />
@@ -67,9 +64,9 @@ const LoginPage = () => {
           <Form.Item
             label="Password"
             name="password"
-            rules={[{ required: true, message: "Vui long nhap password." }]}
+            rules={[{ required: true, message: "Vui lòng nhập password." }]}
           >
-            <Input.Password size="large" placeholder="Nhap mat khau" />
+            <Input.Password size="large" placeholder="Nhập mật khẩu" />
           </Form.Item>
 
           <Button
@@ -80,13 +77,13 @@ const LoginPage = () => {
             loading={submitting}
             className="hero-button"
           >
-            Dang nhap
+            Đăng nhập
           </Button>
         </Form>
 
         <div className="auth-footer">
-          <Link to="/">Ve trang chu</Link>
-          <Link to="/register">Chua co tai khoan?</Link>
+          <Link to="/">Về trang chủ</Link>
+          <Link to="/register">Chưa có tài khoản?</Link>
         </div>
       </Card>
     </section>

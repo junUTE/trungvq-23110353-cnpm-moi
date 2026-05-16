@@ -3,11 +3,14 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { ConfigProvider } from "antd";
 import App from "./App";
+import AdminRoute from "./components/auth/admin-route";
 import { AuthWrapper } from "./components/context/auth.context";
+import AdminPage from "./pages/admin";
 import HomePage from "./pages/home";
 import LoginPage from "./pages/login";
+import ProductDetailPage from "./pages/product-detail";
+import ProfilePage from "./pages/profile";
 import RegisterPage from "./pages/register";
-import UserPage from "./pages/user";
 import "./styles/global.css";
 
 const router = createBrowserRouter([
@@ -20,8 +23,21 @@ const router = createBrowserRouter([
         element: <HomePage />,
       },
       {
-        path: "users",
-        element: <UserPage />,
+        path: "profile",
+        element: <ProfilePage />,
+      },
+      {
+        path: "products/:id",
+        element: <ProductDetailPage />,
+      },
+      {
+        element: <AdminRoute />,
+        children: [
+          {
+            path: "admin",
+            element: <AdminPage />,
+          },
+        ],
       },
     ],
   },

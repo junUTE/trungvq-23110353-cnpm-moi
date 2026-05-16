@@ -2,37 +2,52 @@ const Product = require("../models/product");
 const Category = require("../models/category");
 const imageService = require("../services/imageService");
 
-const createProduct = async (data) => {
-  const { name, price, description, categoryId, images } = data;
+const normalizeBoolean = (value) => {
+  if (typeof value === "boolean") return value;
+  return value === "true" || value === "1";
+};
+
+const normalizeNumber = (value, fallback = 0) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
+
+const createProduct = async (data, files = []) => {
+  const { name, sku, price, stock, description, categoryId } = data;
 
   if (!name || price === undefined || price === null) {
     throw new Error("Name and price are required");
   }
 
-  // check category
-  const category = await Category.findById(categoryId);
-  if (!category) {
-    throw new Error("Category not found");
+  if (stock !== undefined && normalizeNumber(stock, -1) < 0) {
+    throw new Error("Stock must be greater than or equal to 0");
   }
 
-  // create product
+  if (categoryId) {
+    const category = await Category.findById(categoryId);
+    if (!category) {
+      throw new Error("Category not found");
+    }
+  }
+
   const product = await Product.create({
     name,
-    price,
+    sku,
+    price: normalizeNumber(price),
+    stock: normalizeNumber(stock),
     description,
     categoryId,
   });
 
-  // add images (nếu có)
-  if (images && images.length > 0) {
+  if (files.length > 0) {
     await Promise.all(
-      images.map((url, index) =>
-        imageService.addImage(product._id, url, index === 0)
-      )
+      files.map((file, index) =>
+        imageService.addImage(product._id, `/uploads/products/${file.filename}`, index === 0),
+      ),
     );
   }
 
-  return product;
+  return await getProductById(product._id);
 };
 
 const getAllProducts = async () => {
@@ -69,8 +84,8 @@ const getProductById = async (id) => {
   };
 };
 
-const updateProduct = async (id, data) => {
-  const { name, price, description, categoryId } = data;
+const updateProduct = async (id, data, files = []) => {
+  const { name, sku, price, stock, description, categoryId, replaceImages } = data;
 
   const product = await Product.findById(id);
 
@@ -78,9 +93,16 @@ const updateProduct = async (id, data) => {
     throw new Error("Product not found");
   }
 
-  if (name) product.name = name;
+  if (name !== undefined) product.name = name;
+  if (sku !== undefined) product.sku = sku;
   if (price !== undefined && price !== null) product.price = price;
-  if (description) product.description = description;
+  if (stock !== undefined && stock !== null) {
+    if (normalizeNumber(stock, -1) < 0) {
+      throw new Error("Stock must be greater than or equal to 0");
+    }
+    product.stock = normalizeNumber(stock);
+  }
+  if (description !== undefined) product.description = description;
 
   if (categoryId) {
     const category = await Category.findById(categoryId);
@@ -89,7 +111,28 @@ const updateProduct = async (id, data) => {
     product.categoryId = categoryId;
   }
 
-  return await product.save();
+  const updatedProduct = await product.save();
+
+  if (files.length > 0 && normalizeBoolean(replaceImages)) {
+    await imageService.deleteImagesByProduct(id);
+  }
+
+  if (files.length > 0) {
+    const currentImages = await imageService.getImagesByProduct(id);
+    const startIndex = currentImages.length;
+
+    await Promise.all(
+      files.map((file, index) =>
+        imageService.addImage(
+          id,
+          `/uploads/products/${file.filename}`,
+          startIndex === 0 && index === 0,
+        ),
+      ),
+    );
+  }
+
+  return await getProductById(updatedProduct._id);
 };
 
 const deleteProduct = async (id) => {
@@ -123,6 +166,47 @@ const getProductsByCategory = async (categoryId) => {
   return await Product.find({ categoryId });
 };
 
+const searchProducts = async (keyword, categories, minPrice, maxPrice) => {
+  const query = {};
+  if (keyword) {
+    query.name = { $regex: keyword, $options: "i" };
+  }
+  
+  if (categories) {
+    let catArray = [];
+    if (Array.isArray(categories)) {
+      catArray = categories;
+    } else if (typeof categories === "string") {
+      catArray = categories.split(",").filter(Boolean);
+    }
+    if (catArray.length > 0) {
+      query.categoryId = { $in: catArray };
+    }
+  }
+
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    query.price = {};
+    if (minPrice !== undefined) query.price.$gte = Number(minPrice);
+    if (maxPrice !== undefined) query.price.$lte = Number(maxPrice);
+  }
+
+  const products = await Product.find(query)
+    .populate("categoryId")
+    .sort({ createdAt: -1 });
+
+  const result = await Promise.all(
+    products.map(async (product) => {
+      const images = await imageService.getImagesByProduct(product._id);
+      return {
+        ...product.toObject(),
+        images,
+      };
+    })
+  );
+
+  return result;
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -132,4 +216,5 @@ module.exports = {
   getNewestProducts,
   getBestSellerProducts,
   getProductsByCategory,
+  searchProducts,
 };

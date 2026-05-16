@@ -15,15 +15,15 @@ const RegisterPage = () => {
 
     if (response?._id || response?.email) {
       notification.success({
-        message: "Tao tai khoan thanh cong",
-        description: "Ban co the dang nhap ngay bay gio.",
+        message: "Tạo tài khoản thành công",
+        description: "Bạn có thể đăng nhập ngay bây giờ.",
       });
       navigate("/login");
     } else {
       notification.error({
-        message: "Tao tai khoan that bai",
+        message: "Tạo tài khoản thật bại.",
         description:
-          response?.message || "Email co the da ton tai hoac du lieu chua hop le.",
+          response?.message || "Email có thể đã tồn tại hoặc không hợp lệ.",
       });
     }
 
@@ -32,31 +32,27 @@ const RegisterPage = () => {
 
   return (
     <section className="auth-shell">
-      <Card className="auth-card" bordered={false}>
+      <Card className="auth-card" variant="borderless">
         <div className="auth-copy">
           <span className="eyebrow">Create account</span>
-          <Title level={2}>Dang ky tai khoan moi</Title>
-          <Paragraph>
-            Form nay ket noi truc tiep toi `/v1/api/register` tren backend
-            ExpressJS01 cua ban.
-          </Paragraph>
+          <Title level={2}>Đăng ký tài khoản mới</Title>
         </div>
 
         <Form layout="vertical" onFinish={onFinish} autoComplete="off">
           <Form.Item
-            label="Ho ten"
+            label="Họ tên"
             name="name"
-            rules={[{ required: true, message: "Vui long nhap ho ten." }]}
+            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
           >
-            <Input size="large" placeholder="Nguyen Van A" />
+            <Input size="large" placeholder="Nguyễn Văn A" />
           </Form.Item>
 
           <Form.Item
             label="Email"
             name="email"
             rules={[
-              { required: true, message: "Vui long nhap email." },
-              { type: "email", message: "Email khong hop le." },
+              { required: true, message: "Vui lòng nhập email." },
+              { type: "email", message: "Email không hợp lệ" },
             ]}
           >
             <Input size="large" placeholder="you@example.com" />
@@ -66,11 +62,11 @@ const RegisterPage = () => {
             label="Password"
             name="password"
             rules={[
-              { required: true, message: "Vui long nhap password." },
-              { min: 6, message: "Password can it nhat 6 ky tu." },
+              { required: true, message: "Vui lòng nhập password." },
+              { min: 6, message: "Password cần ít nhất 6 ký tự." },
             ]}
           >
-            <Input.Password size="large" placeholder="Tao mat khau" />
+            <Input.Password size="large" placeholder="Tạo mật khẩu" />
           </Form.Item>
 
           <Button
@@ -81,13 +77,13 @@ const RegisterPage = () => {
             loading={submitting}
             className="hero-button"
           >
-            Tao tai khoan
+            Tạo tài khoản
           </Button>
         </Form>
 
         <div className="auth-footer">
-          <Link to="/">Ve trang chu</Link>
-          <Link to="/login">Da co tai khoan?</Link>
+          <Link to="/">Về trang chủ</Link>
+          <Link to="/login">Đã có tài khoản?</Link>
         </div>
       </Card>
     </section>

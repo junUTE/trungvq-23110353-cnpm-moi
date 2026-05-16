@@ -5,6 +5,7 @@ const emptyUser = {
   id: "",
   email: "",
   name: "",
+  role: "",
 };
 
 export const AuthContext = createContext({
@@ -52,12 +53,13 @@ export const AuthWrapper = ({ children }) => {
 
     setAuth({
       isAuthenticated: true,
-      user: {
-        id: response?.id ?? "",
-        email: response?.email ?? "",
-        name: response?.name ?? "",
-      },
-    });
+        user: {
+          id: response?.id ?? "",
+          email: response?.email ?? "",
+          name: response?.name ?? "",
+          role: response?.role ?? "",
+        },
+      });
     setAppLoading(false);
   };
 
