@@ -20,18 +20,20 @@ const attachImages = async (products) => {
 
 const getHomepageData = async (userId) => {
   // chạy song song
-  const [user, newest, bestSeller, promotion] = await Promise.all([
+  const [user, newest, bestSeller, mostViewed, promotion] = await Promise.all([
     userService.getUserById(userId),
     productService.getNewestProducts(10),
     productService.getBestSellerProducts(10),
+    productService.getMostViewedProducts(10),
     promotionService.getPromotionProducts(),
   ]);
 
   // gắn image
-  const [newestWithImages, bestSellerWithImages, promotionWithImages] =
+  const [newestWithImages, bestSellerWithImages, mostViewedWithImages, promotionWithImages] =
     await Promise.all([
       attachImages(newest),
       attachImages(bestSeller),
+      attachImages(mostViewed),
       attachImages(promotion),
     ]);
 
@@ -39,6 +41,7 @@ const getHomepageData = async (userId) => {
     user,
     newest: newestWithImages,
     bestSeller: bestSellerWithImages,
+    mostViewed: mostViewedWithImages,
     promotion: promotionWithImages,
   };
 };

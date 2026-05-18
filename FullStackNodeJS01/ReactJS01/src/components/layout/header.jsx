@@ -19,7 +19,7 @@ const AppHeader = () => {
     <Header className="app-header">
       <div className="brand-block">
         <Link to="/" className="brand-mark">
-          ShopFlow
+          BeautyShop
         </Link>
       </div>
 

@@ -1,7 +1,5 @@
 const express = require("express");
 const {
-  createUser,
-  handleLogin,
   getUser,
   getAccount,
   updateUser,
@@ -9,6 +7,7 @@ const {
   updateProfile,
   deleteOwnAccount,
 } = require("../controllers/userController");
+const { login, register, sendVerificationCode } = require("../controllers/authController");
 const {
   createProduct,
   getAllProducts,
@@ -18,6 +17,7 @@ const {
   deleteProductImage,
   setProductMainImage,
   searchProductsHandler,
+  getCategoryProducts,
 } = require("../controllers/productController");
 const {
   createCategory,
@@ -45,8 +45,9 @@ router.use(auth);
 router.get("/", (req, res) => {
   return res.status(200).json("Hello world api");
 });
-router.post("/register", createUser);
-router.post("/login", handleLogin);
+router.post("/register", register);
+router.post("/login", login);
+router.post("/send-verification", sendVerificationCode);
 router.get("/user", requireAdmin, getUser);
 router.put("/user/:id", requireAdmin, updateUser);
 router.delete("/user/:id", requireAdmin, deleteUser);
@@ -56,6 +57,7 @@ router.delete("/account", deleteOwnAccount);
 router.get("/home", homeController.getHomepage);
 router.get("/search", searchProductsHandler);
 router.get("/public/categories", getAllCategories);
+router.get("/public/categories/:categoryId/products", getCategoryProducts);
 router.get("/product-detail/:id", getProductById);
 router.get("/products", requireAdmin, getAllProducts);
 router.get("/products/:id", requireAdmin, getProductById);

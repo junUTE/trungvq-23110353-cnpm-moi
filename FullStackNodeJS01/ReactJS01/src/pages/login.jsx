@@ -51,14 +51,13 @@ const LoginPage = () => {
 
         <Form layout="vertical" onFinish={onFinish} autoComplete="off">
           <Form.Item
-            label="Email"
+            label="Email hoặc Username"
             name="email"
             rules={[
-              { required: true, message: "Vui lòng nhập email." },
-              { type: "email", message: "Email không hợp lệ." },
+              { required: true, message: "Vui lòng nhập Email hoặc Username." },
             ]}
           >
-            <Input size="large" placeholder="you@example.com" />
+            <Input size="large" placeholder="Nhập email hoặc username" />
           </Form.Item>
 
           <Form.Item

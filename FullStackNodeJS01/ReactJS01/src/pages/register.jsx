@@ -1,33 +1,95 @@
-import { useState } from "react";
-import { Button, Card, Form, Input, Typography, notification } from "antd";
+import { useState, useEffect } from "react";
+import { Button, Card, Form, Input, Typography, notification, Row, Col } from "antd";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserApi } from "../util/api";
+import { createUserApi, sendVerificationCodeApi } from "../util/api";
 
 const { Title, Paragraph } = Typography;
 
 const RegisterPage = () => {
   const navigate = useNavigate();
+  const [form] = Form.useForm();
   const [submitting, setSubmitting] = useState(false);
+  const [sendingOTP, setSendingOTP] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+
+  useEffect(() => {
+    let timer;
+    if (countdown > 0) {
+      timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleSendOTP = async () => {
+    try {
+      const email = form.getFieldValue("email");
+      const username = form.getFieldValue("username");
+
+      if (!email || !username) {
+        notification.warning({
+          message: "Thiếu thông tin",
+          description: "Vui lòng nhập Username và Email trước khi nhận mã.",
+        });
+        return;
+      }
+
+      setSendingOTP(true);
+      const res = await sendVerificationCodeApi(email, username);
+      
+      if (res?.success || res?.message === "Mã xác thực đã được gửi tới email.") {
+        notification.success({
+          message: "Đã gửi mã",
+          description: "Mã xác thực đã được gửi tới email của bạn.",
+        });
+        setCountdown(60);
+      } else {
+        notification.error({
+          message: "Lỗi gửi mã",
+          description: res?.message || "Không thể gửi mã xác thực. Vui lòng thử lại.",
+        });
+      }
+    } catch (error) {
+      notification.error({
+        message: "Lỗi hệ thống",
+        description: error?.response?.data?.message || "Không thể gửi mã xác thực. Vui lòng thử lại sau.",
+      });
+    } finally {
+      setSendingOTP(false);
+    }
+  };
 
   const onFinish = async (values) => {
     setSubmitting(true);
-    const response = await createUserApi(values.name, values.email, values.password);
+    try {
+      const response = await createUserApi(
+        values.username, 
+        values.email, 
+        values.password,
+        values.verificationCode
+      );
 
-    if (response?._id || response?.email) {
-      notification.success({
-        message: "Tạo tài khoản thành công",
-        description: "Bạn có thể đăng nhập ngay bây giờ.",
-      });
-      navigate("/login");
-    } else {
+      if (response?.success || response?.message === "Đăng ký thành công!") {
+        notification.success({
+          message: "Đăng ký thành công",
+          description: "Tài khoản của bạn đã được tạo. Bạn có thể đăng nhập ngay.",
+        });
+        navigate("/login");
+      } else {
+        notification.error({
+          message: "Đăng ký thất bại",
+          description: response?.message || "Không thể tạo tài khoản. Vui lòng kiểm tra lại.",
+        });
+      }
+    } catch (error) {
       notification.error({
-        message: "Tạo tài khoản thật bại.",
-        description:
-          response?.message || "Email có thể đã tồn tại hoặc không hợp lệ.",
+        message: "Đăng ký thất bại",
+        description: error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau.",
       });
+    } finally {
+      setSubmitting(false);
     }
-
-    setSubmitting(false);
   };
 
   return (
@@ -38,13 +100,13 @@ const RegisterPage = () => {
           <Title level={2}>Đăng ký tài khoản mới</Title>
         </div>
 
-        <Form layout="vertical" onFinish={onFinish} autoComplete="off">
+        <Form form={form} layout="vertical" onFinish={onFinish} autoComplete="off">
           <Form.Item
-            label="Họ tên"
-            name="name"
-            rules={[{ required: true, message: "Vui lòng nhập họ tên" }]}
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: "Vui lòng nhập username" }]}
           >
-            <Input size="large" placeholder="Nguyễn Văn A" />
+            <Input size="large" placeholder="nguyen_van_a" />
           </Form.Item>
 
           <Form.Item
@@ -56,6 +118,31 @@ const RegisterPage = () => {
             ]}
           >
             <Input size="large" placeholder="you@example.com" />
+          </Form.Item>
+
+          <Form.Item label="Mã xác thực (OTP)" required>
+            <Row gutter={8}>
+              <Col span={16}>
+                <Form.Item
+                  name="verificationCode"
+                  noStyle
+                  rules={[{ required: true, message: "Vui lòng nhập mã OTP." }]}
+                >
+                  <Input size="large" placeholder="Nhập mã 5 số" maxLength={5} />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Button 
+                  size="large" 
+                  block 
+                  onClick={handleSendOTP} 
+                  disabled={countdown > 0 || sendingOTP}
+                  loading={sendingOTP}
+                >
+                  {countdown > 0 ? `${countdown}s` : "Nhận mã"}
+                </Button>
+              </Col>
+            </Row>
           </Form.Item>
 
           <Form.Item

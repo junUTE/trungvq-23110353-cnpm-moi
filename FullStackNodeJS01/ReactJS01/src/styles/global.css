@@ -761,3 +761,66 @@ a {
 .ant-carousel .slick-next::before {
   display: none !important;
 }
+
+/* --- Horizontal Scroll Container --- */
+.horizontal-scroll-container {
+  position: relative;
+  margin-bottom: 48px;
+}
+
+.horizontal-scroll-track {
+  display: flex;
+  overflow-x: auto;
+  gap: 24px;
+  padding-bottom: 24px;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+.horizontal-scroll-track::-webkit-scrollbar {
+  display: none;
+}
+
+.horizontal-scroll-track { 
+  -ms-overflow-style: none; 
+  scrollbar-width: none; 
+}
+
+.horizontal-scroll-item {
+  flex: 0 0 calc(20% - 19.2px);
+  scroll-snap-align: start;
+}
+
+@media (max-width: 1024px) { .horizontal-scroll-item { flex: 0 0 calc(25% - 18px); } }
+@media (max-width: 768px) { .horizontal-scroll-item { flex: 0 0 calc(33.333% - 16px); } }
+@media (max-width: 480px) { .horizontal-scroll-item { flex: 0 0 65%; } }
+
+.scroll-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 10;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  border: 1px solid rgba(100,50,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.scroll-btn:hover { 
+  background: #fdfdfd; 
+  box-shadow: 0 6px 16px rgba(0,0,0,0.15); 
+  transform: translateY(-50%) scale(1.05); 
+}
+
+.scroll-btn.left { left: -24px; }
+.scroll-btn.right { right: -24px; }
+
+@media (max-width: 768px) { .scroll-btn { display: none; } }

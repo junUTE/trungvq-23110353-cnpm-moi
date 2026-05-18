@@ -26,30 +26,50 @@ const createUserService = async (name, email, password) => {
     }
 };
 
-const loginService = async (email, password) => {
+const loginService = async (loginIdentifier, password) => {
     try {
-        const user = await User.findOne({ email });
+        if (!loginIdentifier || typeof loginIdentifier !== "string" || !loginIdentifier.trim()) {
+            return {
+                EC: 1,
+                EM: "Vui lòng nhập Email hoặc Username",
+            };
+        }
+        if (!password) {
+            return {
+                EC: 1,
+                EM: "Vui lòng nhập mật khẩu",
+            };
+        }
+
+        const trimmedIdentifier = loginIdentifier.trim();
+
+        const user = await User.findOne({
+            $or: [
+                { email: trimmedIdentifier },
+                { username: { $eq: trimmedIdentifier, $ne: null } }
+            ]
+        });
         if (user){
             const isPasswordValid = await brypt.compare(password, user.password);
             if (!isPasswordValid) {
-                return{
+                return {
                     EC: 2,
-                    EM: "Email or password is incorrect",
-                }
+                    EM: "Email/Username hoặc mật khẩu không chính xác",
+                };
             } else {
                 const payload = {
                     id: user._id,
                     email: user.email,
                     name: user.name,
                     role: user.role
-                }
+                };
                 const accessToken = jwt.sign(
                     payload,
                     process.env.JWT_SECRET,
                     {
                         expiresIn: process.env.JWT_EXPIRES
                     }
-                )
+                );
                 return {
                     EC: 0,
                     access_token: accessToken,
@@ -64,8 +84,8 @@ const loginService = async (email, password) => {
         } else {
             return {
                 EC: 1,
-                EM: "Email or password is incorrect",
-            }
+                EM: "Email/Username hoặc mật khẩu không chính xác",
+            };
         }
     } catch (error) {
         console.error('Error during login:', error);
@@ -138,7 +158,7 @@ const deleteUserService = async (id) => {
 
 const updateProfileService = async (id, data) => {
     try {
-        const { name, email, password } = data;
+        const { name, username, email, password } = data;
         const user = await User.findById(id);
 
         if (!user) {
@@ -153,6 +173,13 @@ const updateProfileService = async (id, data) => {
         }
 
         if (name !== undefined) user.name = name;
+        if (username !== undefined) {
+            const existingUsername = await User.findOne({ username, _id: { $ne: id } });
+            if (existingUsername) {
+                throw new Error("Username already exists");
+            }
+            user.username = username;
+        }
         if (email !== undefined) user.email = email;
         if (password) {
             user.password = await brypt.hash(password, saltRounds);

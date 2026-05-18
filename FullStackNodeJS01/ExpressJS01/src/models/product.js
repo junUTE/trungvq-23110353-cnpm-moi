@@ -7,7 +7,8 @@ const productSchema = new mongoose.Schema({
   description: String,
   categoryId: { type: mongoose.Schema.Types.ObjectId, ref: 'Category' },
   createdAt: { type: Date, default: Date.now },
-  sold: { type: Number, default: 0 }
+  sold: { type: Number, default: 0 },
+  views: { type: Number, default: 0 }
 });
 
 const Product = mongoose.model("Product", productSchema);

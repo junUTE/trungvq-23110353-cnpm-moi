@@ -11,6 +11,7 @@ import LoginPage from "./pages/login";
 import ProductDetailPage from "./pages/product-detail";
 import ProfilePage from "./pages/profile";
 import RegisterPage from "./pages/register";
+import CategoryPage from "./pages/category";
 import "./styles/global.css";
 
 const router = createBrowserRouter([
@@ -29,6 +30,10 @@ const router = createBrowserRouter([
       {
         path: "products/:id",
         element: <ProductDetailPage />,
+      },
+      {
+        path: "categories/:id",
+        element: <CategoryPage />,
       },
       {
         element: <AdminRoute />,

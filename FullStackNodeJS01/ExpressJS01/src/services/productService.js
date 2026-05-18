@@ -76,10 +76,14 @@ const getProductById = async (id) => {
     throw new Error("Product not found");
   }
 
+  // Increment views
+  await Product.updateOne({ _id: id }, { $inc: { views: 1 } });
+
   const images = await imageService.getImagesByProduct(id);
 
   return {
     ...product.toObject(),
+    views: (product.views || 0) + 1, // Reflect the updated view count in response
     images,
   };
 };
@@ -162,8 +166,37 @@ const getBestSellerProducts = async (limit = 10) => {
     .limit(limit);
 };
 
-const getProductsByCategory = async (categoryId) => {
-  return await Product.find({ categoryId });
+const getMostViewedProducts = async (limit = 10) => {
+  return await Product.find()
+    .sort({ views: -1 })
+    .limit(limit);
+};
+
+const getProductsByCategory = async (categoryId, page = 1, limit = 10) => {
+  const skip = (page - 1) * limit;
+  const products = await Product.find({ categoryId })
+    .skip(skip)
+    .limit(limit)
+    .sort({ createdAt: -1 });
+
+  const total = await Product.countDocuments({ categoryId });
+
+  const result = await Promise.all(
+    products.map(async (product) => {
+      const images = await imageService.getImagesByProduct(product._id);
+      return {
+        ...product.toObject(),
+        images,
+      };
+    })
+  );
+
+  return {
+    products: result,
+    total,
+    page: Number(page),
+    totalPages: Math.ceil(total / limit)
+  };
 };
 
 const searchProducts = async (keyword, categories, minPrice, maxPrice) => {
@@ -215,6 +248,7 @@ module.exports = {
   deleteProduct,
   getNewestProducts,
   getBestSellerProducts,
+  getMostViewedProducts,
   getProductsByCategory,
   searchProducts,
 };

@@ -22,11 +22,19 @@ const buildProductFormData = (data = {}) => {
   return formData;
 };
 
-export const createUserApi = (name, email, password) => {
+export const createUserApi = (username, email, password, verificationCode) => {
   return axios.post("/v1/api/register", {
-    name,
+    username,
     email,
     password,
+    verificationCode,
+  });
+};
+
+export const sendVerificationCodeApi = (email, username) => {
+  return axios.post("/v1/api/send-verification", {
+    email,
+    username,
   });
 };
 
@@ -78,6 +86,10 @@ export const searchProductsApi = (keyword, categories, minPrice, maxPrice) => {
 
 export const getPublicCategoriesApi = () => {
   return axios.get("/v1/api/public/categories");
+};
+
+export const getCategoryProductsApi = (categoryId, page = 1, limit = 12) => {
+  return axios.get(`/v1/api/public/categories/${categoryId}/products?page=${page}&limit=${limit}`);
 };
 
 export const getProductDetailApi = (id) => {

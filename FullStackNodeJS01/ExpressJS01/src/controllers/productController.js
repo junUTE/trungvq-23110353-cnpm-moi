@@ -117,6 +117,25 @@ const searchProductsHandler = async (req, res) => {
   }
 };
 
+const getCategoryProducts = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    
+    const data = await productService.getProductsByCategory(categoryId, page, limit);
+
+    return res.status(200).json({
+      message: "Success",
+      data,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: error.message,
+    });
+  }
+};
+
 module.exports = {
   createProduct,
   getAllProducts,
@@ -126,4 +145,5 @@ module.exports = {
   deleteProductImage,
   setProductMainImage,
   searchProductsHandler,
+  getCategoryProducts,
 };

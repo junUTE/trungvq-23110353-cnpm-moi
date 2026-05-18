@@ -47,6 +47,7 @@ const ProfilePage = () => {
       }
 
       form.setFieldsValue({
+        username: response?.username ?? "",
         name: response?.name ?? "",
         email: response?.email ?? "",
         role: response?.role ?? "",
@@ -63,6 +64,7 @@ const ProfilePage = () => {
     setSaving(true);
 
     const payload = {
+      username: values.username,
       name: values.name,
       email: values.email,
     };
@@ -86,6 +88,7 @@ const ProfilePage = () => {
       isAuthenticated: true,
       user: {
         id: response?.data?._id ?? auth.user.id,
+        username: response?.data?.username ?? auth.user.username,
         name: response?.data?.name ?? "",
         email: response?.data?.email ?? "",
         role: response?.data?.role ?? auth.user.role,
@@ -145,6 +148,14 @@ const ProfilePage = () => {
         ) : null}
 
         <Form layout="vertical" form={form} onFinish={handleSubmit}>
+          <Form.Item
+            label="Username"
+            name="username"
+            rules={[{ required: true, message: "Vui lòng nhập username." }]}
+          >
+            <Input size="large" />
+          </Form.Item>
+
           <Form.Item
             label="Tên"
             name="name"

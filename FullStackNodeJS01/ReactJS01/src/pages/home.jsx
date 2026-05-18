@@ -44,61 +44,122 @@ const ProductSection = ({ title, items, promotionMode = false, loading = false }
       ) : (
         <div className="ecommerce-grid">
           {items.map((item) => (
-            <Link key={item._id} to={`/products/${item._id}`} className="ecommerce-card-link">
-              <Card
-                variant="borderless"
-                className="ecommerce-card"
-                styles={{ body: { padding: 16 } }}
-              >
-                <div className="ecommerce-image-wrapper">
-                  <img
-                    className="ecommerce-image"
-                    src={
-                      resolveMediaUrl(
-                        item.images?.find((image) => image.isMain)?.url ||
-                          item.images?.[0]?.url
-                      ) || fallbackImage
-                    }
-                    alt={item.name}
-                  />
-                  {promotionMode && (
-                    <div className="ecommerce-badge">
-                      -{getDiscountPercent(item)}%
-                    </div>
-                  )}
-                </div>
-
-                <div className="ecommerce-meta">
-                  <h3 className="ecommerce-title">{item.name}</h3>
-                  <p className="ecommerce-category">
-                    {item.categoryId?.name || "Danh mục chung"}
-                  </p>
-
-                  <div className="ecommerce-price-row">
-                    {promotionMode ? (
-                      <>
-                        <span className="ecommerce-price discounted">
-                          {getDiscountedPrice(item).toLocaleString()}đ
-                        </span>
-                        <span className="ecommerce-price original">
-                          {Number(item.price || 0).toLocaleString()}đ
-                        </span>
-                      </>
-                    ) : (
-                      <span className="ecommerce-price">
-                        {Number(item.price || 0).toLocaleString()}đ
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="ecommerce-footer">
-                    <span>Đã bán {item.sold ?? 0}</span>
-                  </div>
-                </div>
-              </Card>
-            </Link>
+            <ProductCard key={item._id} item={item} promotionMode={promotionMode} />
           ))}
         </div>
+      )}
+    </section>
+  );
+};
+
+const ProductCard = ({ item, promotionMode }) => (
+  <Link to={`/products/${item._id}`} className="ecommerce-card-link">
+    <Card
+      variant="borderless"
+      className="ecommerce-card"
+      styles={{ body: { padding: 16 } }}
+    >
+      <div className="ecommerce-image-wrapper">
+        <img
+          className="ecommerce-image"
+          src={
+            resolveMediaUrl(
+              item.images?.find((image) => image.isMain)?.url ||
+              item.images?.[0]?.url
+            ) || fallbackImage
+          }
+          alt={item.name}
+        />
+        {promotionMode && (
+          <div className="ecommerce-badge">
+            -{getDiscountPercent(item)}%
+          </div>
+        )}
+      </div>
+
+      <div className="ecommerce-meta">
+        <h3 className="ecommerce-title">{item.name}</h3>
+        <p className="ecommerce-category">
+          {item.categoryId?.name || "Danh mục chung"}
+        </p>
+
+        <div className="ecommerce-price-row">
+          {promotionMode ? (
+            <>
+              <span className="ecommerce-price discounted">
+                {getDiscountedPrice(item).toLocaleString()}đ
+              </span>
+              <span className="ecommerce-price original">
+                {Number(item.price || 0).toLocaleString()}đ
+              </span>
+            </>
+          ) : (
+            <span className="ecommerce-price">
+              {Number(item.price || 0).toLocaleString()}đ
+            </span>
+          )}
+        </div>
+
+        <div className="ecommerce-footer">
+          <span>Đã bán {item.sold ?? 0}</span>
+          <span>👁 {item.views ?? 0}</span>
+        </div>
+      </div>
+    </Card>
+  </Link>
+);
+
+import { useRef } from 'react';
+
+const HorizontalProductList = ({ title, items, promotionMode = false, loading = false }) => {
+  const scrollRef = useRef(null);
+
+  const scroll = (direction) => {
+    if (scrollRef.current) {
+      const { scrollLeft, clientWidth } = scrollRef.current;
+      const scrollTo = direction === 'left' ? scrollLeft - clientWidth * 0.8 : scrollLeft + clientWidth * 0.8;
+      scrollRef.current.scrollTo({ left: scrollTo, behavior: 'smooth' });
+    }
+  };
+
+  return (
+    <section className="ecommerce-section horizontal-scroll-container">
+      <div className="section-header">
+        <h2>{title}</h2>
+        <Link to="/" className="view-all-link">
+          Xem tất cả
+        </Link>
+      </div>
+
+      {loading ? (
+        <div className="horizontal-scroll-track" style={{ overflow: 'hidden' }}>
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="horizontal-scroll-item">
+              <Card variant="borderless" className="ecommerce-card">
+                <Skeleton.Image active style={{ width: "100%", height: 240 }} />
+                <Skeleton active paragraph={{ rows: 2 }} style={{ marginTop: 16 }} />
+              </Card>
+            </div>
+          ))}
+        </div>
+      ) : items.length === 0 ? (
+        <Empty description="Chưa có sản phẩm" />
+      ) : (
+        <>
+          <button className="scroll-btn left" onClick={() => scroll('left')}>
+            &#8592;
+          </button>
+          <div className="horizontal-scroll-track" ref={scrollRef}>
+            {items.map((item) => (
+              <div key={item._id} className="horizontal-scroll-item">
+                <ProductCard item={item} promotionMode={promotionMode} />
+              </div>
+            ))}
+          </div>
+          <button className="scroll-btn right" onClick={() => scroll('right')}>
+            &#8594;
+          </button>
+        </>
       )}
     </section>
   );
@@ -112,6 +173,7 @@ const HomePage = () => {
     user: null,
     newest: [],
     bestSeller: [],
+    mostViewed: [],
     promotion: [],
   });
 
@@ -146,6 +208,7 @@ const HomePage = () => {
           user: null,
           newest: [],
           bestSeller: [],
+          mostViewed: [],
           promotion: [],
         }
       );
@@ -209,9 +272,9 @@ const HomePage = () => {
           <Tag color="gold" className="hero-tag">
             Cửa hàng mỹ phẩm
           </Tag>
-          <h1>Chào mừng đến với ShopFlow</h1>
+          <h1>Chào mừng đến với BeautyShop</h1>
           <p>
-            Khám phá các bộ sưu tập mỹ phẩm cao cấp với giá ưu đãi. Đăng nhập ngay để 
+            Khám phá các bộ sưu tập mỹ phẩm cao cấp với giá ưu đãi. Đăng nhập ngay để
             trải nghiệm mua sắm tuyệt vời nhất!
           </p>
           <Space size="middle" wrap>
@@ -230,12 +293,12 @@ const HomePage = () => {
 
         <div className="hero-panel">
           <div className="ecommerce-image-wrapper">
-             <img 
-               className="ecommerce-image" 
-               src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1200&q=80" 
-               alt="Mỹ phẩm"
-               style={{ borderRadius: 20 }}
-             />
+            <img
+              className="ecommerce-image"
+              src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1200&q=80"
+              alt="Mỹ phẩm"
+              style={{ borderRadius: 20 }}
+            />
           </div>
         </div>
       </section>
@@ -297,29 +360,35 @@ const HomePage = () => {
       </div>
 
       {isSearching ? (
-        <ProductSection 
-          title="🔍 Kết quả tìm kiếm" 
-          items={searchResults} 
+        <ProductSection
+          title="🔍 Kết quả tìm kiếm"
+          items={searchResults}
           loading={searchLoading}
         />
       ) : (
         <>
-          <ProductSection 
-            title="🔥 Đang Khuyến Mãi" 
-            items={homeData.promotion} 
-            promotionMode 
-            loading={loading}
-          />
-          
-          <ProductSection 
-            title="✨ Sản Phẩm Mới" 
-            items={homeData.newest} 
+          <HorizontalProductList
+            title="🔥 Đang Khuyến Mãi"
+            items={homeData.promotion}
+            promotionMode
             loading={loading}
           />
 
-          <ProductSection 
-            title="👑 Bán Chạy Nhất" 
-            items={homeData.bestSeller} 
+          <HorizontalProductList
+            title="✨ Sản Phẩm Mới"
+            items={homeData.newest}
+            loading={loading}
+          />
+
+          <HorizontalProductList
+            title="👑 Bán Chạy Nhất"
+            items={homeData.bestSeller}
+            loading={loading}
+          />
+
+          <HorizontalProductList
+            title="🔥 Xem Nhiều Nhất"
+            items={homeData.mostViewed}
             loading={loading}
           />
         </>
