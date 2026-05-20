@@ -27,14 +27,13 @@ const LoginPage = () => {
         },
       });
       notification.success({
-        message: "Dang nhap thanh cong",
-        description: "Ban da ket noi vao he thong.",
+        message: "Đăng nhập thành công",
       });
-      navigate(response?.user?.role === "admin" ? "/admin" : "/");
+      navigate("/");
     } else {
       notification.error({
-        message: "Dang nhap that bai",
-        description: response?.EM || response?.message || "Khong the dang nhap.",
+        message: "Đăng nhập thất bại",
+        description: response?.EM || response?.message || "Không thể đăng nhập.",
       });
     }
 

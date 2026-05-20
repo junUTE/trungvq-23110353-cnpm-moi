@@ -3,6 +3,7 @@ import { getAccountApi } from "../../util/api";
 
 const emptyUser = {
   id: "",
+  username: "",
   email: "",
   name: "",
   role: "",
@@ -54,7 +55,8 @@ export const AuthWrapper = ({ children }) => {
     setAuth({
       isAuthenticated: true,
         user: {
-          id: response?.id ?? "",
+          id: response?._id ?? response?.id ?? "",
+          username: response?.username ?? "",
           email: response?.email ?? "",
           name: response?.name ?? "",
           role: response?.role ?? "",

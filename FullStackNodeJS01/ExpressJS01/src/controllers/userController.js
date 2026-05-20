@@ -2,10 +2,15 @@ const {
     createUserService,
     loginService,
     getUserService,
+    getUserById,
     updateUserService,
     deleteUserService,
     updateProfileService,
-    deleteOwnAccountService
+    deleteOwnAccountService,
+    addAddressService,
+    updateAddressService,
+    setDefaultAddressService,
+    deleteAddressService
 } = require("../services/userService");
 
 const createUser = async (req,res) => {
@@ -27,7 +32,14 @@ const getUser = async (req, res) => {
 }
 
 const getAccount = async (req, res) =>{
-    return res.status(200).json(req.user)
+    try {
+        const data = await getUserById(req.user.id);
+        return res.status(200).json(data);
+    } catch (error) {
+        return res.status(404).json({
+            message: error.message
+        });
+    }
 }
 
 const updateUser = async (req, res) => {
@@ -89,6 +101,65 @@ const deleteOwnAccount = async (req, res) => {
     }
 }
 
+const addAddress = async (req, res) => {
+    try {
+        const data = await addAddressService(req.user.id, req.body);
+        return res.status(200).json({
+            message: "Address added successfully",
+            data
+        });
+    } catch (error) {
+        return res.status(400).json({
+            message: error.message
+        });
+    }
+}
+
+const updateAddress = async (req, res) => {
+    try {
+        const data = await updateAddressService(req.user.id, req.params.addressId, req.body);
+        return res.status(200).json({
+            message: "Address updated successfully",
+            data
+        });
+    } catch (error) {
+        const statusCode = error.message === "Address not found" ? 404 : 400;
+        return res.status(statusCode).json({
+            message: error.message
+        });
+    }
+}
+
+const setDefaultAddress = async (req, res) => {
+    try {
+        const data = await setDefaultAddressService(req.user.id, req.params.addressId);
+        return res.status(200).json({
+            message: "Default address updated successfully",
+            data
+        });
+    } catch (error) {
+        const statusCode = error.message === "Address not found" ? 404 : 400;
+        return res.status(statusCode).json({
+            message: error.message
+        });
+    }
+}
+
+const deleteAddress = async (req, res) => {
+    try {
+        const data = await deleteAddressService(req.user.id, req.params.addressId);
+        return res.status(200).json({
+            message: "Address deleted successfully",
+            data
+        });
+    } catch (error) {
+        const statusCode = error.message === "Address not found" ? 404 : 400;
+        return res.status(statusCode).json({
+            message: error.message
+        });
+    }
+}
+
 module.exports = {
     createUser,
     handleLogin,
@@ -97,5 +168,9 @@ module.exports = {
     updateUser,
     deleteUser,
     updateProfile,
-    deleteOwnAccount
+    deleteOwnAccount,
+    addAddress,
+    updateAddress,
+    setDefaultAddress,
+    deleteAddress
 }

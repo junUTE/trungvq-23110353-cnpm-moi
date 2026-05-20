@@ -1,8 +1,27 @@
 require('dotenv').config();
 const User = require('../models/user');
+const Address = require('../models/address');
 const brypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const saltRounds = 10;
+
+const normalizeString = (value) => String(value || "").trim();
+
+const buildUserProfile = async (userDoc) => {
+    const user = typeof userDoc?.toObject === "function" ? userDoc.toObject() : userDoc;
+    const addresses = await Address.find({ userId: user._id }).sort({ isDefault: -1, createdAt: -1 });
+    const plainAddresses = addresses.map((address) => address.toObject());
+    const defaultAddress =
+        plainAddresses.find((address) => address.isDefault) ||
+        plainAddresses.find((address) => String(address._id) === String(user.defaultAddressId || "")) ||
+        null;
+
+    return {
+        ...user,
+        addresses: plainAddresses,
+        defaultAddress,
+    };
+};
 
 const createUserService = async (name, email, password) => {
     try {
@@ -109,7 +128,7 @@ const getUserById = async (id) => {
         if (!user) {
             throw new Error("User not found");
         }
-        return user;
+        return await buildUserProfile(user);
     } catch (error) {
         throw error;
     }
@@ -136,7 +155,7 @@ const updateUserService = async (id, data) => {
         if (role !== undefined) user.role = role;
 
         await user.save();
-        return await User.findById(id).select("-password");
+        return await buildUserProfile(await User.findById(id).select("-password"));
     } catch (error) {
         throw error;
     }
@@ -149,6 +168,7 @@ const deleteUserService = async (id) => {
             throw new Error("User not found");
         }
 
+        await Address.deleteMany({ userId: id });
         await User.findByIdAndDelete(id);
         return { message: "User deleted successfully" };
     } catch (error) {
@@ -186,11 +206,143 @@ const updateProfileService = async (id, data) => {
         }
 
         await user.save();
-        return await User.findById(id).select("-password");
+        return await buildUserProfile(await User.findById(id).select("-password"));
     } catch (error) {
         throw error;
     }
 }
+
+const addAddressService = async (userId, data) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const phone = normalizeString(data.phone);
+    const addressLine = normalizeString(data.addressLine);
+    const ward = normalizeString(data.ward);
+    const district = normalizeString(data.district);
+    const city = normalizeString(data.city);
+    const isDefault = Boolean(data.isDefault);
+
+    if (!phone || !addressLine || !district || !city) {
+        throw new Error("Vui lòng nhập đầy đủ thông tin địa chỉ");
+    }
+
+    if (isDefault) {
+        await Address.updateMany({ userId }, { isDefault: false });
+    }
+
+    const shouldBeDefault =
+        isDefault || !user.defaultAddressId || (await Address.countDocuments({ userId })) === 0;
+
+    const address = await Address.create({
+        userId,
+        phone,
+        addressLine,
+        ward,
+        district,
+        city,
+        isDefault: shouldBeDefault,
+    });
+
+    user.addressIds = [...(user.addressIds || []), address._id];
+    if (shouldBeDefault) {
+        user.defaultAddressId = address._id;
+    }
+    await user.save();
+
+    return await buildUserProfile(await User.findById(userId).select("-password"));
+};
+
+const updateAddressService = async (userId, addressId, data) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const address = await Address.findOne({ _id: addressId, userId });
+    if (!address) {
+        throw new Error("Address not found");
+    }
+
+    const phone = normalizeString(data.phone);
+    const addressLine = normalizeString(data.addressLine);
+    const ward = normalizeString(data.ward);
+    const district = normalizeString(data.district);
+    const city = normalizeString(data.city);
+    const isDefault = Boolean(data.isDefault);
+
+    if (!phone || !addressLine || !district || !city) {
+        throw new Error("Vui lòng nhập đầy đủ thông tin địa chỉ");
+    }
+
+    if (isDefault) {
+        await Address.updateMany({ userId }, { isDefault: false });
+        user.defaultAddressId = address._id;
+    }
+
+    address.phone = phone;
+    address.addressLine = addressLine;
+    address.ward = ward;
+    address.district = district;
+    address.city = city;
+    address.isDefault = isDefault || String(user.defaultAddressId || "") === String(address._id);
+    await address.save();
+    await user.save();
+
+    return await buildUserProfile(await User.findById(userId).select("-password"));
+};
+
+const setDefaultAddressService = async (userId, addressId) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const address = await Address.findOne({ _id: addressId, userId });
+    if (!address) {
+        throw new Error("Address not found");
+    }
+
+    await Address.updateMany({ userId }, { isDefault: false });
+    address.isDefault = true;
+    await address.save();
+    user.defaultAddressId = address._id;
+    await user.save();
+
+    return await buildUserProfile(await User.findById(userId).select("-password"));
+};
+
+const deleteAddressService = async (userId, addressId) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new Error("User not found");
+    }
+
+    const address = await Address.findOne({ _id: addressId, userId });
+    if (!address) {
+        throw new Error("Address not found");
+    }
+
+    const wasDefault = address.isDefault || String(user.defaultAddressId || "") === String(address._id);
+    await Address.deleteOne({ _id: address._id });
+    user.addressIds = (user.addressIds || []).filter((id) => String(id) !== String(address._id));
+
+    if (wasDefault) {
+        const nextAddress = await Address.findOne({ userId }).sort({ createdAt: 1 });
+        if (nextAddress) {
+            nextAddress.isDefault = true;
+            await nextAddress.save();
+            user.defaultAddressId = nextAddress._id;
+        } else {
+            user.defaultAddressId = null;
+        }
+    }
+
+    await user.save();
+    return await buildUserProfile(await User.findById(userId).select("-password"));
+};
 
 const deleteOwnAccountService = async (id) => {
     try {
@@ -199,6 +351,7 @@ const deleteOwnAccountService = async (id) => {
             throw new Error("User not found");
         }
 
+        await Address.deleteMany({ userId: id });
         await User.findByIdAndDelete(id);
         return { message: "Account deleted successfully" };
     } catch (error) {
@@ -214,5 +367,9 @@ module.exports = {
     updateUserService,
     deleteUserService,
     updateProfileService,
-    deleteOwnAccountService
+    deleteOwnAccountService,
+    addAddressService,
+    updateAddressService,
+    setDefaultAddressService,
+    deleteAddressService
 }

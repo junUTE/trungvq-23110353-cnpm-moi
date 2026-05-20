@@ -5,6 +5,8 @@ const userSchema = new mongoose.Schema({
   email: String,
   password: String,
   role: String,
+  addressIds: [{ type: mongoose.Schema.Types.ObjectId, ref: "Address" }],
+  defaultAddressId: { type: mongoose.Schema.Types.ObjectId, ref: "Address", default: null },
   isVerified: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
   lastLoginAt: { type: Date, default: null },

@@ -6,6 +6,10 @@ const {
   deleteUser,
   updateProfile,
   deleteOwnAccount,
+  addAddress,
+  updateAddress,
+  setDefaultAddress,
+  deleteAddress,
 } = require("../controllers/userController");
 const { login, register, sendVerificationCode } = require("../controllers/authController");
 const {
@@ -33,6 +37,21 @@ const {
   updatePromotion,
   deletePromotion,
 } = require("../controllers/promotionController");
+const {
+  getCart,
+  addCartItem,
+  updateCartItem,
+  removeCartItem,
+  clearCart,
+} = require("../controllers/cartController");
+const {
+  checkoutOrder,
+  getMyOrders,
+  getOrderDetail,
+  cancelMyOrder,
+  getAllOrders: getAllOrdersAdmin,
+  updateOrderStatus,
+} = require("../controllers/orderController");
 const auth = require("../middleware/auth");
 const requireAdmin = require("../middleware/requireAdmin");
 const uploadProductImages = require("../middleware/uploadProductImages");
@@ -54,6 +73,10 @@ router.delete("/user/:id", requireAdmin, deleteUser);
 router.get("/account", getAccount);
 router.put("/account", updateProfile);
 router.delete("/account", deleteOwnAccount);
+router.post("/account/addresses", addAddress);
+router.put("/account/addresses/:addressId", updateAddress);
+router.put("/account/addresses/:addressId/default", setDefaultAddress);
+router.delete("/account/addresses/:addressId", deleteAddress);
 router.get("/home", homeController.getHomepage);
 router.get("/search", searchProductsHandler);
 router.get("/public/categories", getAllCategories);
@@ -76,5 +99,16 @@ router.get("/promotions/:id", requireAdmin, getPromotionById);
 router.post("/promotions", requireAdmin, createPromotion);
 router.put("/promotions/:id", requireAdmin, updatePromotion);
 router.delete("/promotions/:id", requireAdmin, deletePromotion);
+router.get("/cart", getCart);
+router.post("/cart/items", addCartItem);
+router.put("/cart/items/:itemId", updateCartItem);
+router.delete("/cart/items/:itemId", removeCartItem);
+router.delete("/cart", clearCart);
+router.post("/orders/checkout", checkoutOrder);
+router.get("/orders/me", getMyOrders);
+router.get("/orders/:id", getOrderDetail);
+router.patch("/orders/:id/cancel", cancelMyOrder);
+router.get("/admin/orders", requireAdmin, getAllOrdersAdmin);
+router.patch("/admin/orders/:id/status", requireAdmin, updateOrderStatus);
 
 module.exports = router;

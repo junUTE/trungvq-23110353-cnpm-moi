@@ -69,6 +69,22 @@ export const deleteOwnAccountApi = () => {
   return axios.delete("/v1/api/account");
 };
 
+export const createAddressApi = (data) => {
+  return axios.post("/v1/api/account/addresses", data);
+};
+
+export const updateAddressApi = (addressId, data) => {
+  return axios.put(`/v1/api/account/addresses/${addressId}`, data);
+};
+
+export const setDefaultAddressApi = (addressId) => {
+  return axios.put(`/v1/api/account/addresses/${addressId}/default`);
+};
+
+export const deleteAddressApi = (addressId) => {
+  return axios.delete(`/v1/api/account/addresses/${addressId}`);
+};
+
 export const getHomepageApi = () => {
   return axios.get("/v1/api/home");
 };
@@ -94,6 +110,42 @@ export const getCategoryProductsApi = (categoryId, page = 1, limit = 12) => {
 
 export const getProductDetailApi = (id) => {
   return axios.get(`/v1/api/product-detail/${id}`);
+};
+
+export const getCartApi = () => {
+  return axios.get("/v1/api/cart");
+};
+
+export const addCartItemApi = (productId, quantity = 1) => {
+  return axios.post("/v1/api/cart/items", { productId, quantity });
+};
+
+export const updateCartItemApi = (itemId, quantity) => {
+  return axios.put(`/v1/api/cart/items/${itemId}`, { quantity });
+};
+
+export const removeCartItemApi = (itemId) => {
+  return axios.delete(`/v1/api/cart/items/${itemId}`);
+};
+
+export const clearCartApi = () => {
+  return axios.delete("/v1/api/cart");
+};
+
+export const checkoutOrderApi = (data) => {
+  return axios.post("/v1/api/orders/checkout", data);
+};
+
+export const getMyOrdersApi = () => {
+  return axios.get("/v1/api/orders/me");
+};
+
+export const getOrderDetailApi = (id) => {
+  return axios.get(`/v1/api/orders/${id}`);
+};
+
+export const cancelMyOrderApi = (id, reason) => {
+  return axios.patch(`/v1/api/orders/${id}/cancel`, { reason });
 };
 
 export const getCategoriesApi = () => {
@@ -150,4 +202,12 @@ export const updatePromotionApi = (id, data) => {
 
 export const deletePromotionApi = (id) => {
   return axios.delete(`/v1/api/promotions/${id}`);
+};
+
+export const getAdminOrdersApi = () => {
+  return axios.get("/v1/api/admin/orders");
+};
+
+export const updateAdminOrderStatusApi = (id, status, note = "") => {
+  return axios.patch(`/v1/api/admin/orders/${id}/status`, { status, note });
 };

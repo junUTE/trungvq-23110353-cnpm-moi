@@ -2,12 +2,22 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
 const auth = (req, res, next) => {
-    const white_lists = ["/","/register","/login","/send-verification"];
+    const white_lists = [
+        "/",
+        "/register",
+        "/login",
+        "/send-verification",
+        "/home",
+        "/search",
+        "/public/categories"
+    ];
     
-    const isWhiteListed = white_lists.find(item => '/v1/api' + item === req.originalUrl);
-    const isProductDetail = req.originalUrl.startsWith('/v1/api/product-detail');
+    const currentPath = req.path;
+    const isWhiteListed = white_lists.includes(currentPath);
+    const isProductDetail = currentPath.startsWith('/product-detail');
+    const isCategoryProducts = currentPath.startsWith('/public/categories/');
 
-    if (isWhiteListed || isProductDetail){
+    if (isWhiteListed || isProductDetail || isCategoryProducts){
         next();
     } else {
         if (req?.headers?.authorization?.split(' ')?.[1]){

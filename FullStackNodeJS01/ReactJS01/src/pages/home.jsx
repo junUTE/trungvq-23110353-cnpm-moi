@@ -1,7 +1,9 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { Alert, Button, Card, Empty, Skeleton, Space, Tag, Input, Select } from "antd";
-import { Link } from "react-router-dom";
+import { ShoppingCartOutlined } from "@ant-design/icons";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { AuthContext } from "../components/context/auth.context";
+import { CartContext } from "../components/context/cart.context";
 import { getHomepageApi, searchProductsApi, getPublicCategoriesApi } from "../util/api";
 import { resolveMediaUrl } from "../util/media";
 
@@ -20,9 +22,20 @@ const getDiscountedPrice = (item) => {
   return Math.round(originalPrice * (1 - discountPercent / 100));
 };
 
-const ProductSection = ({ title, items, promotionMode = false, loading = false }) => {
+const findCartItemIdByProductId = (cartData, productId) =>
+  cartData?.items?.find((item) => String(item.product?._id) === String(productId))?._id;
+
+const ProductSection = ({
+  title,
+  items,
+  promotionMode = false,
+  loading = false,
+  onAddToCart,
+  onBuyNow,
+  sectionId,
+}) => {
   return (
-    <section className="ecommerce-section">
+    <section className="ecommerce-section" id={sectionId}>
       <div className="section-header">
         <h2>{title}</h2>
         <Link to="/" className="view-all-link">
@@ -44,7 +57,13 @@ const ProductSection = ({ title, items, promotionMode = false, loading = false }
       ) : (
         <div className="ecommerce-grid">
           {items.map((item) => (
-            <ProductCard key={item._id} item={item} promotionMode={promotionMode} />
+            <ProductCard
+              key={item._id}
+              item={item}
+              promotionMode={promotionMode}
+              onAddToCart={onAddToCart}
+              onBuyNow={onBuyNow}
+            />
           ))}
         </div>
       )}
@@ -52,13 +71,13 @@ const ProductSection = ({ title, items, promotionMode = false, loading = false }
   );
 };
 
-const ProductCard = ({ item, promotionMode }) => (
-  <Link to={`/products/${item._id}`} className="ecommerce-card-link">
-    <Card
-      variant="borderless"
-      className="ecommerce-card"
-      styles={{ body: { padding: 16 } }}
-    >
+const ProductCard = ({ item, promotionMode, onAddToCart, onBuyNow }) => (
+  <Card
+    variant="borderless"
+    className="ecommerce-card"
+    styles={{ body: { padding: 16 } }}
+  >
+    <Link to={`/products/${item._id}`} className="ecommerce-card-link">
       <div className="ecommerce-image-wrapper">
         <img
           className="ecommerce-image"
@@ -105,13 +124,36 @@ const ProductCard = ({ item, promotionMode }) => (
           <span>👁 {item.views ?? 0}</span>
         </div>
       </div>
-    </Card>
-  </Link>
+    </Link>
+    <Space direction="vertical" size={10} style={{ width: "100%" }}>
+      <Button
+        type="primary"
+        className="add-cart-button"
+        disabled={(item.stock ?? 0) <= 0}
+        onClick={() => onBuyNow(item._id)}
+      >
+        {(item.stock ?? 0) > 0 ? "Mua ngay" : "Hết hàng"}
+      </Button>
+      <Button
+        icon={<ShoppingCartOutlined />}
+        className="add-cart-button"
+        disabled={(item.stock ?? 0) <= 0}
+        onClick={() => onAddToCart(item._id)}
+      >
+        {(item.stock ?? 0) > 0 ? "Thêm vào giỏ" : "Hết hàng"}
+      </Button>
+    </Space>
+  </Card>
 );
-
-import { useRef } from 'react';
-
-const HorizontalProductList = ({ title, items, promotionMode = false, loading = false }) => {
+const HorizontalProductList = ({
+  title,
+  items,
+  promotionMode = false,
+  loading = false,
+  onAddToCart,
+  onBuyNow,
+  sectionId,
+}) => {
   const scrollRef = useRef(null);
 
   const scroll = (direction) => {
@@ -123,7 +165,7 @@ const HorizontalProductList = ({ title, items, promotionMode = false, loading = 
   };
 
   return (
-    <section className="ecommerce-section horizontal-scroll-container">
+    <section className="ecommerce-section horizontal-scroll-container" id={sectionId}>
       <div className="section-header">
         <h2>{title}</h2>
         <Link to="/" className="view-all-link">
@@ -152,7 +194,12 @@ const HorizontalProductList = ({ title, items, promotionMode = false, loading = 
           <div className="horizontal-scroll-track" ref={scrollRef}>
             {items.map((item) => (
               <div key={item._id} className="horizontal-scroll-item">
-                <ProductCard item={item} promotionMode={promotionMode} />
+                <ProductCard
+                  item={item}
+                  promotionMode={promotionMode}
+                  onAddToCart={onAddToCart}
+                  onBuyNow={onBuyNow}
+                />
               </div>
             ))}
           </div>
@@ -166,7 +213,10 @@ const HorizontalProductList = ({ title, items, promotionMode = false, loading = 
 };
 
 const HomePage = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { auth } = useContext(AuthContext);
+  const { addToCart, buyNow } = useContext(CartContext);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [homeData, setHomeData] = useState({
@@ -186,11 +236,39 @@ const HomePage = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
 
-  useEffect(() => {
-    if (!auth.isAuthenticated) {
+  const handleAddToCart = async (productId) => {
+    await addToCart(productId, 1);
+  };
+
+  const handleBuyNow = async (productId) => {
+    const cartData = await buyNow(productId, 1);
+    const itemId = findCartItemIdByProductId(cartData, productId);
+
+    if (!itemId) {
       return;
     }
 
+    sessionStorage.setItem("selected_cart_item_ids", JSON.stringify([itemId]));
+    navigate("/checkout");
+  };
+
+  useEffect(() => {
+    if (!location.hash) {
+      return;
+    }
+
+    const sectionId = location.hash.replace("#", "");
+    const timer = window.setTimeout(() => {
+      const element = document.getElementById(sectionId);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }, 150);
+
+    return () => window.clearTimeout(timer);
+  }, [location.hash, loading, isSearching]);
+
+  useEffect(() => {
     const fetchHomepage = async () => {
       setLoading(true);
       setError("");
@@ -216,11 +294,10 @@ const HomePage = () => {
     };
 
     fetchHomepage();
-  }, [auth.isAuthenticated]);
+  }, []);
 
   // Fetch Categories for Filter
   useEffect(() => {
-    if (!auth.isAuthenticated) return;
     const fetchCategories = async () => {
       const res = await getPublicCategoriesApi();
       if (res?.data) {
@@ -228,11 +305,10 @@ const HomePage = () => {
       }
     };
     fetchCategories();
-  }, [auth.isAuthenticated]);
+  }, []);
 
   // Handle Search & Filter logic with Debounce
   useEffect(() => {
-    if (!auth.isAuthenticated) return;
     if (!searchQuery && selectedCategories.length === 0 && !priceRange) {
       setIsSearching(false);
       setSearchResults([]);
@@ -263,60 +339,40 @@ const HomePage = () => {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategories, priceRange, auth.isAuthenticated]);
-
-  if (!auth.isAuthenticated) {
-    return (
-      <section className="hero-shell">
-        <div className="hero-copy">
-          <Tag color="gold" className="hero-tag">
-            Cửa hàng mỹ phẩm
-          </Tag>
-          <h1>Chào mừng đến với BeautyShop</h1>
-          <p>
-            Khám phá các bộ sưu tập mỹ phẩm cao cấp với giá ưu đãi. Đăng nhập ngay để
-            trải nghiệm mua sắm tuyệt vời nhất!
-          </p>
-          <Space size="middle" wrap>
-            <Link to="/login">
-              <Button type="primary" size="large" className="hero-button">
-                Đăng nhập ngay
-              </Button>
-            </Link>
-            <Link to="/register">
-              <Button size="large" className="ghost-button hero-button">
-                Tạo tài khoản
-              </Button>
-            </Link>
-          </Space>
-        </div>
-
-        <div className="hero-panel">
-          <div className="ecommerce-image-wrapper">
-            <img
-              className="ecommerce-image"
-              src="https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=1200&q=80"
-              alt="Mỹ phẩm"
-              style={{ borderRadius: 20 }}
-            />
-          </div>
-        </div>
-      </section>
-    );
-  }
+  }, [searchQuery, selectedCategories, priceRange]);
 
   return (
     <section className="dashboard-shell" style={{ width: 'min(1200px, 100%)', margin: '0 auto' }}>
       <div className="ecommerce-hero">
         <div className="ecommerce-hero-content">
           <Tag color="gold" style={{ border: 'none', background: 'rgba(255,255,255,0.2)', color: 'white' }}>
-            Xin chào, {homeData.user?.name || auth.user.name || auth.user.email}
+            {auth.isAuthenticated
+              ? `Xin chào, ${homeData.user?.name || auth.user.name || auth.user.email}`
+              : "Cửa hàng mỹ phẩm"}
           </Tag>
           <h1>Bộ sưu tập Thu Đông 2026</h1>
-          <p>Tỏa sáng rạng ngời với hàng ngàn ưu đãi lên đến 50% cho các sản phẩm mỹ phẩm cao cấp nhất hiện nay.</p>
-          <Button type="primary" size="large" style={{ background: '#fff', color: '#bb4d00', border: 'none', fontWeight: 700 }}>
-            Mua sắm ngay
-          </Button>
+          <p>
+            Tỏa sáng rạng ngời với hàng ngàn ưu đãi lên đến 50% cho các sản phẩm mỹ phẩm cao cấp nhất hiện nay.
+            {!auth.isAuthenticated ? " Bạn có thể xem sản phẩm ngay, đăng nhập khi muốn mua hàng." : ""}
+          </p>
+          {auth.isAuthenticated ? (
+            <Button type="primary" size="large" style={{ background: '#fff', color: '#bb4d00', border: 'none', fontWeight: 700 }}>
+              Mua sắm ngay
+            </Button>
+          ) : (
+            <Space size="middle" wrap>
+              <Link to="/login">
+                <Button type="primary" size="large" style={{ background: '#fff', color: '#bb4d00', border: 'none', fontWeight: 700 }}>
+                  Đăng nhập
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button size="large" className="ghost-button hero-button">
+                  Tạo tài khoản
+                </Button>
+              </Link>
+            </Space>
+          )}
         </div>
       </div>
 
@@ -364,6 +420,9 @@ const HomePage = () => {
           title="🔍 Kết quả tìm kiếm"
           items={searchResults}
           loading={searchLoading}
+          onAddToCart={handleAddToCart}
+          onBuyNow={handleBuyNow}
+          sectionId="search-results"
         />
       ) : (
         <>
@@ -372,24 +431,36 @@ const HomePage = () => {
             items={homeData.promotion}
             promotionMode
             loading={loading}
+            onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
+            sectionId="promotion"
           />
 
           <HorizontalProductList
             title="✨ Sản Phẩm Mới"
             items={homeData.newest}
             loading={loading}
+            onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
+            sectionId="newest"
           />
 
           <HorizontalProductList
             title="👑 Bán Chạy Nhất"
             items={homeData.bestSeller}
             loading={loading}
+            onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
+            sectionId="best-seller"
           />
 
           <HorizontalProductList
             title="🔥 Xem Nhiều Nhất"
             items={homeData.mostViewed}
             loading={loading}
+            onAddToCart={handleAddToCart}
+            onBuyNow={handleBuyNow}
+            sectionId="most-viewed"
           />
         </>
       )}

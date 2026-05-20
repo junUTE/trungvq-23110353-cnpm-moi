@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useContext, useEffect, useState, useRef } from "react";
 import {
   Alert,
   Button,
@@ -12,13 +12,17 @@ import {
   Divider,
 } from "antd";
 import { ShoppingCartOutlined, CreditCardOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { getProductDetailApi } from "../util/api";
 import { resolveMediaUrl } from "../util/media";
+import { CartContext } from "../components/context/cart.context";
 
 const { Title, Paragraph } = Typography;
 const fallbackImage =
   "https://images.unsplash.com/photo-1512436991641-6745cdb1723f?auto=format&fit=crop&w=800&q=80";
+
+const findCartItemIdByProductId = (cartData, productId) =>
+  cartData?.items?.find((item) => String(item.product?._id) === String(productId))?._id;
 
 const CustomPrevArrow = (props) => {
   const { style, onClick } = props;
@@ -76,10 +80,24 @@ const CustomNextArrow = (props) => {
 
 const ProductDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [product, setProduct] = useState(null);
   const fetchedIdRef = useRef(null);
+  const { addToCart, buyNow } = useContext(CartContext);
+
+  const handleBuyNow = async () => {
+    const cartData = await buyNow(id, 1);
+    const itemId = findCartItemIdByProductId(cartData, id);
+
+    if (!itemId) {
+      return;
+    }
+
+    sessionStorage.setItem("selected_cart_item_ids", JSON.stringify([itemId]));
+    navigate("/checkout");
+  };
 
   useEffect(() => {
     if (fetchedIdRef.current === id) return;
@@ -224,16 +242,20 @@ const ProductDetailPage = () => {
                   type="primary" 
                   size="large" 
                   icon={<CreditCardOutlined />}
+                  disabled={(product.stock ?? 0) <= 0}
+                  onClick={handleBuyNow}
                   style={{ flex: 1, height: 50, borderRadius: 12, fontSize: 16, fontWeight: 600 }}
                 >
-                  Mua ngay
+                  {(product.stock ?? 0) > 0 ? "Mua ngay" : "Hết hàng"}
                 </Button>
                 <Button 
                   size="large" 
                   icon={<ShoppingCartOutlined />}
+                  disabled={(product.stock ?? 0) <= 0}
+                  onClick={() => addToCart(product._id, 1)}
                   style={{ flex: 1, height: 50, borderRadius: 12, fontSize: 16, fontWeight: 600, color: '#bb4d00', borderColor: '#bb4d00' }}
                 >
-                  Thêm vào giỏ hàng
+                  {(product.stock ?? 0) > 0 ? "Thêm vào giỏ hàng" : "Hết hàng"}
                 </Button>
               </div>
             </div>

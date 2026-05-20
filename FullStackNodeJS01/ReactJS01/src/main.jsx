@@ -5,7 +5,10 @@ import { ConfigProvider } from "antd";
 import App from "./App";
 import AdminRoute from "./components/auth/admin-route";
 import { AuthWrapper } from "./components/context/auth.context";
+import { CartWrapper } from "./components/context/cart.context";
 import AdminPage from "./pages/admin";
+import CartPage from "./pages/cart";
+import CheckoutPage from "./pages/checkout";
 import HomePage from "./pages/home";
 import LoginPage from "./pages/login";
 import ProductDetailPage from "./pages/product-detail";
@@ -34,6 +37,14 @@ const router = createBrowserRouter([
       {
         path: "categories/:id",
         element: <CategoryPage />,
+      },
+      {
+        path: "cart",
+        element: <CartPage />,
+      },
+      {
+        path: "checkout",
+        element: <CheckoutPage />,
       },
       {
         element: <AdminRoute />,
@@ -69,7 +80,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       }}
     >
       <AuthWrapper>
-        <RouterProvider router={router} />
+        <CartWrapper>
+          <RouterProvider router={router} />
+        </CartWrapper>
       </AuthWrapper>
     </ConfigProvider>
   </React.StrictMode>,

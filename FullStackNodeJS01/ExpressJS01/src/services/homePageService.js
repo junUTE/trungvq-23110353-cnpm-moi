@@ -21,7 +21,7 @@ const attachImages = async (products) => {
 const getHomepageData = async (userId) => {
   // chạy song song
   const [user, newest, bestSeller, mostViewed, promotion] = await Promise.all([
-    userService.getUserById(userId),
+    userId ? userService.getUserById(userId) : Promise.resolve(null),
     productService.getNewestProducts(10),
     productService.getBestSellerProducts(10),
     productService.getMostViewedProducts(10),

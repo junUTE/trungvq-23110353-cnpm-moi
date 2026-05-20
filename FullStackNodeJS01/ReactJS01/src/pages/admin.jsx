@@ -40,6 +40,8 @@ import {
   updateUserApi,
   deleteProductImageApi,
   setProductMainImageApi,
+  getAdminOrdersApi,
+  updateAdminOrderStatusApi,
 } from "../util/api";
 import { resolveMediaUrl } from "../util/media";
 import dayjs from "dayjs";
@@ -56,6 +58,7 @@ const AdminPage = () => {
   const [products, setProducts] = useState([]);
   const [promotions, setPromotions] = useState([]);
   const [users, setUsers] = useState([]);
+  const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(false);
   const [savingCategory, setSavingCategory] = useState(false);
   const [savingProduct, setSavingProduct] = useState(false);
@@ -67,8 +70,12 @@ const AdminPage = () => {
   const [error, setError] = useState("");
   const [uploadFiles, setUploadFiles] = useState([]);
   const [userModalOpen, setUserModalOpen] = useState(false);
+  const [orderModalOpen, setOrderModalOpen] = useState(false);
   const [savingUser, setSavingUser] = useState(false);
+  const [savingOrder, setSavingOrder] = useState(false);
   const [userForm] = Form.useForm();
+  const [orderForm] = Form.useForm();
+  const [selectedOrder, setSelectedOrder] = useState(null);
 
   const categoryOptions = useMemo(
     () =>
@@ -92,11 +99,12 @@ const AdminPage = () => {
     setLoading(true);
     setError("");
 
-    const [categoryResponse, productResponse, promotionResponse, userResponse] = await Promise.all([
+    const [categoryResponse, productResponse, promotionResponse, userResponse, orderResponse] = await Promise.all([
       getCategoriesApi(),
       getProductsApi(),
       getPromotionsApi(),
       getUsersApi(),
+      getAdminOrdersApi(),
     ]);
 
     if (categoryResponse?.message && !categoryResponse?.data) {
@@ -123,6 +131,12 @@ const AdminPage = () => {
       return;
     }
 
+    if (orderResponse?.message && !orderResponse?.data) {
+      setError(orderResponse.message);
+      setLoading(false);
+      return;
+    }
+
     setCategories(
       Array.isArray(categoryResponse?.data) ? categoryResponse.data : [],
     );
@@ -133,6 +147,7 @@ const AdminPage = () => {
       Array.isArray(promotionResponse?.data) ? promotionResponse.data : [],
     );
     setUsers(Array.isArray(userResponse) ? userResponse : []);
+    setOrders(Array.isArray(orderResponse?.data) ? orderResponse.data : []);
     setLoading(false);
   };
 
@@ -160,6 +175,12 @@ const AdminPage = () => {
     setSelectedUser(null);
     setUserModalOpen(false);
     userForm.resetFields();
+  };
+
+  const closeOrderModal = () => {
+    setSelectedOrder(null);
+    setOrderModalOpen(false);
+    orderForm.resetFields();
   };
 
   const handleCategorySubmit = async (values) => {
@@ -367,6 +388,33 @@ const AdminPage = () => {
     await hydrateData();
   };
 
+  const handleOrderSubmit = async (values) => {
+    if (!selectedOrder) return;
+
+    setSavingOrder(true);
+    const response = await updateAdminOrderStatusApi(
+      selectedOrder._id,
+      values.status,
+      values.note || "",
+    );
+
+    if (response?.message && !response?.data) {
+      notification.error({
+        message: "Không thể cập nhật đơn hàng",
+        description: response.message,
+      });
+      setSavingOrder(false);
+      return;
+    }
+
+    notification.success({
+      message: "Đã cập nhật trạng thái đơn hàng",
+    });
+    closeOrderModal();
+    await hydrateData();
+    setSavingOrder(false);
+  };
+
   const handleDeleteImage = async (productId, imageId) => {
     const response = await deleteProductImageApi(imageId);
     if (response?.message && !response?.message.includes("successfully")) {
@@ -439,6 +487,22 @@ const AdminPage = () => {
       name: record.name,
       email: record.email,
       role: record.role,
+    });
+  };
+
+  const startEditOrder = (record) => {
+    setSelectedOrder(record);
+    setOrderModalOpen(true);
+    const nextStatusOptions = {
+      NEW: "CONFIRMED",
+      CONFIRMED: "PREPARING",
+      PREPARING: record.cancellationRequested ? "CANCELED" : "SHIPPING",
+      SHIPPING: "DELIVERED",
+    };
+
+    orderForm.setFieldsValue({
+      status: nextStatusOptions[record.status],
+      note: "",
     });
   };
 
@@ -981,6 +1045,100 @@ const AdminPage = () => {
             ),
           },
           {
+            key: "orders",
+            label: `Đơn hàng (${orders.length})`,
+            children: (
+              <Card className="panel-card admin-card" variant="borderless">
+                <div className="panel-heading">
+                  <div>
+                    <Title level={3}>Theo dõi và xử lý đơn hàng</Title>
+                    <Paragraph>
+                      Admin có thể xác nhận đơn, chuyển trạng thái giao hàng và xử lý yêu cầu hủy.
+                    </Paragraph>
+                  </div>
+                </div>
+
+                <Table
+                  rowKey="_id"
+                  loading={loading}
+                  pagination={{ pageSize: 6 }}
+                  scroll={{ x: 1100 }}
+                  dataSource={orders}
+                  columns={[
+                    {
+                      title: "Mã đơn",
+                      dataIndex: "_id",
+                      render: (value) => value.slice(-8).toUpperCase(),
+                    },
+                    {
+                      title: "Khách hàng",
+                      render: (_, record) =>
+                        record.userId?.name || record.userId?.email || "Không xác định",
+                    },
+                    {
+                      title: "Ngày đặt",
+                      dataIndex: "createdAt",
+                      render: (value) => dayjs(value).format("DD/MM/YYYY HH:mm"),
+                    },
+                    {
+                      title: "Tổng tiền",
+                      dataIndex: "totalPrice",
+                      render: (value) => `${Number(value || 0).toLocaleString()}đ`,
+                    },
+                    {
+                      title: "Thanh toán",
+                      render: (_, record) => (
+                        <Space direction="vertical" size={4}>
+                          <span>{record.payment?.methodLabel}</span>
+                          <Tag color={record.payment?.status === "PAID" ? "green" : "gold"}>
+                            {record.payment?.statusLabel}
+                          </Tag>
+                        </Space>
+                      ),
+                    },
+                    {
+                      title: "Trạng thái",
+                      render: (_, record) => (
+                        <Space direction="vertical" size={4}>
+                          <Tag color={
+                            record.status === "DELIVERED"
+                              ? "green"
+                              : record.status === "CANCELED"
+                                ? "red"
+                                : record.status === "SHIPPING"
+                                  ? "cyan"
+                                  : record.status === "PREPARING"
+                                    ? "orange"
+                                    : record.status === "CONFIRMED"
+                                      ? "geekblue"
+                                      : "gold"
+                          }>
+                            {record.statusLabel}
+                          </Tag>
+                          {record.cancellationRequested ? (
+                            <Tag color="red">Có yêu cầu hủy</Tag>
+                          ) : null}
+                        </Space>
+                      ),
+                    },
+                    {
+                      title: "Hành động",
+                      render: (_, record) => (
+                        <Space wrap>
+                          {["NEW", "CONFIRMED", "PREPARING", "SHIPPING"].includes(record.status) ? (
+                            <Button onClick={() => startEditOrder(record)}>
+                              Cập nhật trạng thái
+                            </Button>
+                          ) : null}
+                        </Space>
+                      ),
+                    },
+                  ]}
+                />
+              </Card>
+            ),
+          },
+          {
             key: "users",
             label: `Người dùng (${users.length})`,
             children: (
@@ -1089,6 +1247,63 @@ const AdminPage = () => {
           <Space>
             <Button onClick={closeUserModal}>Hủy</Button>
             <Button type="primary" htmlType="submit" loading={savingUser}>
+              Lưu thay đổi
+            </Button>
+          </Space>
+        </Form>
+      </Modal>
+
+      <Modal
+        title="Cập nhật trạng thái đơn hàng"
+        open={orderModalOpen}
+        onCancel={closeOrderModal}
+        footer={null}
+        destroyOnClose
+      >
+        <Form layout="vertical" form={orderForm} onFinish={handleOrderSubmit}>
+          <Form.Item label="Mã đơn">
+            <Input value={selectedOrder?._id || ""} disabled />
+          </Form.Item>
+
+          <Form.Item label="Trạng thái hiện tại">
+            <Input value={selectedOrder?.statusLabel || ""} disabled />
+          </Form.Item>
+
+          <Form.Item
+            label="Trạng thái mới"
+            name="status"
+            rules={[{ required: true, message: "Vui lòng chọn trạng thái mới." }]}
+          >
+            <Select
+              options={[
+                ...(selectedOrder?.status === "NEW"
+                  ? [{ value: "CONFIRMED", label: "Đã xác nhận đơn hàng" }, { value: "CANCELED", label: "Hủy đơn hàng" }]
+                  : []),
+                ...(selectedOrder?.status === "CONFIRMED"
+                  ? [{ value: "PREPARING", label: "Shop đang chuẩn bị hàng" }, { value: "CANCELED", label: "Hủy đơn hàng" }]
+                  : []),
+                ...(selectedOrder?.status === "PREPARING"
+                  ? [
+                      { value: "SHIPPING", label: "Đang giao hàng" },
+                      ...(selectedOrder?.cancellationRequested
+                        ? [{ value: "CANCELED", label: "Hủy theo yêu cầu khách" }]
+                        : []),
+                    ]
+                  : []),
+                ...(selectedOrder?.status === "SHIPPING"
+                  ? [{ value: "DELIVERED", label: "Đã giao thành công" }]
+                  : []),
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item label="Ghi chú" name="note">
+            <Input.TextArea rows={3} placeholder="Ghi chú cho lần cập nhật trạng thái này" />
+          </Form.Item>
+
+          <Space>
+            <Button onClick={closeOrderModal}>Hủy</Button>
+            <Button type="primary" htmlType="submit" loading={savingOrder}>
               Lưu thay đổi
             </Button>
           </Space>

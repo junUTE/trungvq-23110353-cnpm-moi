@@ -2,7 +2,7 @@ const homepageService = require('../services/homePageService');
 
 const getHomepage = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const userId = req.user?.id ?? null;
 
     const data = await homepageService.getHomepageData(userId);
 
